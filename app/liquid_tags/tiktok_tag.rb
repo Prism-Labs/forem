@@ -13,7 +13,7 @@ class TiktokTag < LiquidTagBase
   def render(_context)
     ApplicationController.render(
       partial: PARTIAL,
-      locals: @oembed,
+      locals: @oembed
     )
   end
 
