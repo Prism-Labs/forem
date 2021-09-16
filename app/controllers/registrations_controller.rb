@@ -14,8 +14,6 @@ class RegistrationsController < Devise::RegistrationsController
   def create
     authorize(params, policy_class: RegistrationPolicy)
 
-    resolve_profile_field_issues
-
     unless recaptcha_verified?
       flash[:notice] = "You must complete the recaptcha ✅"
       return redirect_to new_user_registration_path(state: "email_signup")
@@ -42,8 +40,10 @@ class RegistrationsController < Devise::RegistrationsController
   def update_first_user_permissions(resource)
     return unless Settings::General.waiting_on_first_user
 
+    resource.add_role(:creator)
     resource.add_role(:super_admin)
     resource.add_role(:trusted)
+    resource.skip_confirmation!
     Settings::General.waiting_on_first_user = false
     Users::CreateMascotAccount.call
   end
@@ -57,16 +57,6 @@ class RegistrationsController < Devise::RegistrationsController
     end
   end
 
-  def resolve_profile_field_issues
-    # Run this data update script when in a state of "first user" in the event
-    # that we are in a state where this was not already run.
-    # This is likely only temporarily needed.
-    return unless Settings::General.waiting_on_first_user
-
-    csv = Rails.root.join("lib/data/dev_profile_fields.csv")
-    ProfileFields::ImportFromCsv.call(csv)
-  end
-
   def check_allowed_email(resource)
     domain = resource.email.split("@").last
     allow_list = Settings::Authentication.allowed_registration_email_domains
@@ -78,10 +68,12 @@ class RegistrationsController < Devise::RegistrationsController
 
   def build_devise_resource
     build_resource(sign_up_params)
-    resource.saw_onboarding = false
     resource.registered_at = Time.current
-    resource.editor_version = "v2"
+    resource.build_setting(editor_version: "v2")
     resource.remote_profile_image_url = Users::ProfileImageGenerator.call if resource.remote_profile_image_url.blank?
+    if FeatureFlag.enabled?(:creator_onboarding)
+      resource.password_confirmation = resource.password
+    end
     check_allowed_email(resource) if resource.email.present?
     resource.save if resource.email.present?
   end

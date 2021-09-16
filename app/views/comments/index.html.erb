@@ -42,9 +42,9 @@
   <% end %>
 <% end %>
 
-<%= javascript_packs_with_chunks_tag "commentDropdowns", defer: true %>
+<%= javascript_packs_with_chunks_tag "commentDropdowns", "followButtons", defer: true %>
 
-<div class="crayons-layout crayons-layout--limited-l gap-0">
+<div class="crayons-layout crayons-layout--limited-l gap-0" data-follow-button-container="true">
   <% if @commentable.class.name == "Article" %>
     <%= render "shared/payment_pointer", user: @commentable.user %>
     <span id="comment-article-indicator" data-article-id="<%= @commentable.id %>"></span>
@@ -55,7 +55,7 @@
       <header class="crayons-article__header">
         <% if @commentable.respond_to?(:main_image) && @commentable.main_image.present? %>
           <div class="crayons-article__cover">
-            <img src="<%= cloud_cover_url(@commentable.main_image) %>" width="1000" height="420" style="background-color:<%= @commentable.main_image_background_hex_color %>;" class="crayons-article__cover__image" alt="Cover image for <%= sanitize_and_decode @commentable.title %>">
+            <img src="<%= cloud_cover_url(@commentable.main_image) %>" width="1000" height="420" style="background-color:<%= @commentable.main_image_background_hex_color %>;" class="crayons-article__cover__image" alt="Cover image for <%= @commentable.title %>">
           </div>
         <% end %>
 
@@ -154,10 +154,11 @@
 
 <div class="fullscreen-code js-fullscreen-code"></div>
 
-<script async>
+<script>
   <%== TweetTag.script %>
   <%== YoutubeTag.script %>
   <%== PodcastTag.script %>
   <%== GistTag.script %>
+  <%== RunkitTag.script %>
 </script>
 <%== TwitterTimelineTag.script %>
