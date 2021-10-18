@@ -170,3 +170,6 @@ group :test do
   gem "with_model", "~> 2.1.5" # Dynamically build a model within an RSpec context
   gem "zonebie", "~> 0.6.1" # Runs your tests in a random timezone
 end
+
+# Customization for Everlist and Ghostwriter
+gem "google_search_results", "~> 2.1"

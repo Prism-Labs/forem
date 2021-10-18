@@ -1,0 +1,58 @@
+<% title "Generate Article with GhostWriter" %>
+
+<%= content_for :page_meta do %>
+  <link rel="canonical" href="<%= app_url("/ghostwriter") %>" />
+  <meta name="description" content="Generate Article with GhostWriter">
+  <%= meta_keywords_default %>
+
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="<%= app_url("/ghostwriter") %>" />
+  <meta property="og:title" content="Generate Article with GhostWriter" />
+  <meta property="og:site_name" content="<%= community_name %>" />
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@<%= Settings::General.social_media_handles["twitter"] %>">
+  <meta name="twitter:title" content="Generate Article with GhostWriter">
+<% end %>
+
+<div class="crayons-layout crayons-layout--limited-l ghostwriter-page">
+  <div class="crayons-card text-padding">
+    <h1 class="fs-3xl s:fs-4xl l:fs-5xl fw-bold s:fw-heavy lh-tight mb-4 mt-0">Search By Keyword</h1>
+
+    <p>
+      Search keywords and generate an article based on them.
+    </p>
+
+    <div class="p-4">
+      <%= form_tag("/search-new", :method => "get") do %>
+        <div class="flex flex-row items-center">
+          <%= label_tag :q, "Search for:", class: "crayons-field__label whitespace-nowrap hidden xs:inline-block"  %>
+          <%= text_field_tag :q, params[:q], class: "crayons-textfield" %>
+          <%= submit_tag "Search", class: "crayons-btn" %>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="crayons-card crayons-card--secondary p-4 m:p-6">
+      <% if @autosuggests.length > 0  %>
+        <%= form_tag("/ghostwriter", :method => "post") do %>
+          <%= hidden_field_tag  :q, params[:q] %>
+          <ul class="keyword-suggestion-list">
+            <% @autosuggests.each do |keyword| %>
+              <li class="keyword-suggestion">
+                <label>
+                  <%= check_box_tag "keywords[]", keyword, false %>
+                  <span><%= keyword %></span>
+                </label>
+              </li>
+            <% end %>
+          </ul>
+          <div class="p-6 text-right">
+            <%= submit_tag "Suggest an Article Content", class: "crayons-btn" %>
+          </div>
+        <% end %>
+      <% else %>
+        <p></p>
+      <% end %>
+    </div>
+  </div>
+</div>

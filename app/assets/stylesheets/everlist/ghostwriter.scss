@@ -1,0 +1,51 @@
+@import '../variables';
+@import '../config/import';
+@import '../components/buttons.scss';
+
+.keyword-suggestion-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    grid-auto-columns: max-content;
+    grid-gap: 10px;
+
+    .keyword-suggestion {
+        text-align: center;
+        padding: 0 var(--horizontal-padding);
+
+        label {
+            display: inline-block;
+            max-width: 380px;
+            width: 100%;
+            input {
+                display: none;
+                visibility: hidden;
+                width: 0;
+                height: 0;
+            }
+        }
+        label > span {
+            @extend .crayons-btn;
+            @extend .crayons-btn--outlined;
+            background-color: var(--base-10);
+            width: 100%;  
+        }
+        input:checked + span {
+            background-color: var(--base-40);
+        }
+    }
+}
+
+.text-center {
+    text-align: center;
+}
+.text-right {
+    text-align: right;
+}
+
+.ghostwriter-page {
+    .crayons-fields--horizontal {
+        .crayons-textfield {
+            width: 80%;
+        }
+    }
+}

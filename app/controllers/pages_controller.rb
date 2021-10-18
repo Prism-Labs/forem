@@ -1,6 +1,9 @@
+require "google_search_results"
+
 class PagesController < ApplicationController
   # No authorization required for entirely public controller
   before_action :set_cache_control_headers, only: %i[show badge bounty faq robots]
+  before_action :authenticate_user!, only: %i[search_new ghostwriter]
 
   def show
     @page = Page.find_by!(slug: params[:slug])
@@ -113,6 +116,47 @@ class PagesController < ApplicationController
         .first
 
     redirect_daily_thread_request(daily_thread)
+  end
+
+  def search_new
+    # call SERPAPI to generate a list of suggested keywords
+    params = request.query_parameters
+    @autosuggests = []
+    q = params.fetch("q", "").to_s.strip
+
+    if ApplicationConfig["SERP_API_KEY"].to_s.empty? || ApplicationConfig["GHOSTWRITER_API_KEY"].to_s.empty?
+      raise Error, "SerpAPI and GhostWriter API configuration is not yet complete!"
+    end
+
+    unless q.empty?
+      search = GoogleSearch.new(q: q, serp_api_key: ApplicationConfig["SERP_API_KEY"])
+      hash_results = search.get_hash
+      hash_results[:related_searches].each do |related_search|
+        @autosuggests.append(related_search[:query])
+      end
+    end
+
+    render "pages/ghostwriter"
+  end
+
+  def ghostwriter
+    # Call GhostWriter API to generate article layout
+    keywords = request.request_parameters.fetch("keywords", [])
+    q = request.request_parameters.fetch("q", "")
+
+    if keywords.length <= 0
+      redirect_to action: "search_new", q: q
+      return
+    end
+
+    gw_client = Ghostwriter::GhostwriterClient.new(ApplicationConfig["GHOSTWRITER_API_KEY"])
+    status, text = gw_client.generate_with_keywords(keywords)
+
+    if status == true
+      redirect_to controller: "articles", action: "new", prefill: text
+    else
+      redirect_to action: "search_new", q: q, error: text.to_s
+    end
   end
 
   private

@@ -2,7 +2,7 @@ class TiktokTag < LiquidTagBase
   include ActionView::Helpers::SanitizeHelper
 
   PARTIAL = "liquids/tiktok".freeze
-  URL_REGEXP = %r{\Ahttps://(www.)?tiktok.com/@(\w+)/video/([0-9]+)}.freeze
+  URL_REGEXP = %r{\Ahttps://(www.)?tiktok.com/@(\w+)/video/([0-9]+)}
 
   def initialize(_tag_name, url, _parse_context)
     super
@@ -13,7 +13,7 @@ class TiktokTag < LiquidTagBase
   def render(_context)
     ApplicationController.render(
       partial: PARTIAL,
-      locals: @oembed
+      locals: @oembed,
     )
   end
 

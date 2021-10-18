@@ -320,6 +320,10 @@ Rails.application.routes.draw do
     post "articles/preview", to: "articles#preview"
     post "comments/preview", to: "comments#preview"
 
+    # Ghost writer page
+    get "/search-new", to: "pages#search_new"
+    post "/ghostwriter", to: "pages#ghostwriter"
+
     # These routes are required by links in the sites and will most likely to be replaced by a db page
     get "/about", to: "pages#about"
     get "/about-listings", to: "pages#about_listings"
