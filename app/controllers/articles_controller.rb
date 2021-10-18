@@ -223,6 +223,11 @@ class ArticlesController < ApplicationController
     @tag = Tag.find_by(name: params[:template])
     @prefill = params[:prefill].to_s.gsub("\\n ", "\n").gsub("\\n", "\n")
     @user_approved_liquid_tags = Users::ApprovedLiquidTags.call(@user)
+
+    # Prefill GhostWriter generated text
+    if @prefill.empty? && params[:gw_generated]
+      @prefill = session[:ghostwriter_article].to_s
+    end
   end
 
   def handle_user_or_organization_feed

@@ -37,7 +37,7 @@ module Ghostwriter
       raise Error, "GhostWriter API returned invalid status! #{resp.code}" unless resp.code == 200
 
       body = resp.to_h
-      return [true, body[:generated_article]]
+      return true, body["generated_article"]
     end
   end
 end

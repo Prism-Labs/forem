@@ -122,7 +122,7 @@ class PagesController < ApplicationController
     # call SERPAPI to generate a list of suggested keywords
     params = request.query_parameters
     @autosuggests = []
-    q = params.fetch("q", "").to_s.strip
+    q = params[:q].to_s.strip
 
     if ApplicationConfig["SERP_API_KEY"].to_s.empty? || ApplicationConfig["GHOSTWRITER_API_KEY"].to_s.empty?
       raise Error, "SerpAPI and GhostWriter API configuration is not yet complete!"
@@ -153,7 +153,9 @@ class PagesController < ApplicationController
     status, text = gw_client.generate_with_keywords(keywords)
 
     if status == true
-      redirect_to controller: "articles", action: "new", prefill: text
+      # puts(text)
+      session[:ghostwriter_article] = text
+      redirect_to controller: "articles", action: "new", gw_generated: true
     else
       redirect_to action: "search_new", q: q, error: text.to_s
     end
