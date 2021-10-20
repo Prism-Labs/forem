@@ -48,4 +48,24 @@
             width: 80%;
         }
     }
+
+    #gwSearchFormSubmit {
+        svg {
+            color: inherit;
+            position: absolute;
+            left: 8px;
+        }
+        &:disabled {
+            padding-left: 36px;
+            padding-right: 16px;
+        }
+        &:not(:disabled) {
+            padding-left: 26px;
+            padding-right: 26px;
+            svg {
+                display: none;
+                visibility: hidden;
+            }
+        }
+    }
 }

@@ -23,18 +23,21 @@
     </p>
 
     <div class="p-4">
-      <%= form_tag("/search-new", :method => "get") do %>
+      <%= form_tag("/search-new", :method => "get", :id => "gwSearchForm", :name => "gwSearchForm") do %>
         <div class="flex flex-row items-center">
           <%= label_tag :q, "Search for:", class: "crayons-field__label whitespace-nowrap hidden xs:inline-block"  %>
-          <%= text_field_tag :q, params[:q], class: "crayons-textfield" %>
-          <%= submit_tag "Search", class: "crayons-btn" %>
+          <%= text_field_tag :q, params[:q], class: "crayons-textfield", required: true %>
+          <button type="submit" class="crayons-btn" id="gwSearchFormSubmit">
+            <svg class="crayons-icon crayons-spinner" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18.364 5.636L16.95 7.05A7 7 0 1019 12h2a9 9 0 11-2.636-6.364z" fill="currentColor" class="grow-1"></path></svg>
+            Search
+          </button>
         </div>
       <% end %>
     </div>
 
     <div class="crayons-card crayons-card--secondary p-4 m:p-6">
       <% if @autosuggests.length > 0  %>
-        <%= form_tag("/ghostwriter", :method => "post") do %>
+        <%= form_tag("/ghostwriter", :method => "post", :id => "gwKeywordsForm", :name => "gwKeywordsForm") do %>
           <%= hidden_field_tag  :q, params[:q] %>
           <ul class="keyword-suggestion-list">
             <% @autosuggests.each do |keyword| %>
@@ -49,6 +52,22 @@
           <div class="p-6 text-right">
             <%= submit_tag "Suggest an Article Content", class: "crayons-btn" %>
           </div>
+
+          <div id="wait-ghostwriter-response-modal" class="hidden">
+            <div class="crayons-modal crayons-modal--s">
+              <div class="crayons-modal__box">
+                <header class="crayons-modal__box__header">
+                  <h2 class="fs-l fw-bold mt-0 mb-0">
+                    Generating Text...
+                  </h2>
+                </header>
+                <div class="crayons-modal__box__body text-center">
+                  <img class="loading-img" src="<%= asset_path("loading-ellipsis.svg") %>" alt="loading">
+                </div>
+              </div>
+              <div class="crayons-modal__overlay"></div>
+            </div>
+          </div>
         <% end %>
       <% else %>
         <p></p>
@@ -56,3 +75,21 @@
     </div>
   </div>
 </div>
+
+
+<script>
+  (function() {
+    var searchForm = document.forms['gwSearchForm'];
+    var keywordsForm = document.forms['gwKeywordsForm'];
+
+    searchForm.addEventListener('submit', function() {
+      document.getElementById('gwSearchFormSubmit').disabled = true;
+      return true;
+    });
+
+    keywordsForm && keywordsForm.addEventListener('submit', function() {
+      document.getElementById('wait-ghostwriter-response-modal').classList.remove('hidden');
+      return true;
+    });
+  })();
+</script>
