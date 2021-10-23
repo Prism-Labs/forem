@@ -27,10 +27,7 @@
         <div class="flex flex-row items-center">
           <%= label_tag :q, "Search for:", class: "crayons-field__label whitespace-nowrap hidden xs:inline-block"  %>
           <%= text_field_tag :q, params[:q], class: "crayons-textfield", required: true %>
-          <button type="submit" class="crayons-btn" id="gwSearchFormSubmit">
-            <svg class="crayons-icon crayons-spinner" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18.364 5.636L16.95 7.05A7 7 0 1019 12h2a9 9 0 11-2.636-6.364z" fill="currentColor" class="grow-1"></path></svg>
-            Search
-          </button>
+          <button type="submit" class="crayons-btn" id="gwSearchFormSubmit">Search</button>
         </div>
       <% end %>
     </div>
@@ -50,28 +47,28 @@
             <% end %>
           </ul>
           <div class="p-6 text-right">
-            <%= submit_tag "Suggest an Article Content", class: "crayons-btn" %>
-          </div>
-
-          <div id="wait-ghostwriter-response-modal" class="hidden">
-            <div class="crayons-modal crayons-modal--s">
-              <div class="crayons-modal__box">
-                <header class="crayons-modal__box__header">
-                  <h2 class="fs-l fw-bold mt-0 mb-0">
-                    Generating Text...
-                  </h2>
-                </header>
-                <div class="crayons-modal__box__body text-center">
-                  <img class="loading-img" src="<%= asset_path("loading-ellipsis.svg") %>" alt="loading">
-                </div>
-              </div>
-              <div class="crayons-modal__overlay"></div>
-            </div>
+            <%= submit_tag "Suggest an Article Content", class: "crayons-btn", id: "gwKeywordsFormSubmit" %>
           </div>
         <% end %>
       <% else %>
         <p></p>
       <% end %>
+    </div>
+
+    <div id="wait-ghostwriter-response-modal" class="hidden">
+      <div class="crayons-modal crayons-modal--s">
+        <div class="crayons-modal__box">
+          <header class="crayons-modal__box__header">
+            <h2 class="fs-l fw-bold mt-0 mb-0">
+              Generating Text...
+            </h2>
+          </header>
+          <div class="crayons-modal__box__body text-center">
+            <img class="loading-img" src="<%= asset_path("loading-ellipsis.svg") %>" alt="loading">
+          </div>
+        </div>
+        <div class="crayons-modal__overlay"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -81,15 +78,38 @@
   (function() {
     var searchForm = document.forms['gwSearchForm'];
     var keywordsForm = document.forms['gwKeywordsForm'];
+    var waitModal = document.getElementById('wait-ghostwriter-response-modal');
+    var doSubmit = false;
+
+    function showWaitingModal(title) {
+      waitModal.querySelector('header h2').innerText = title;
+      waitModal.classList.remove('hidden');
+    }
 
     searchForm.addEventListener('submit', function() {
-      document.getElementById('gwSearchFormSubmit').disabled = true;
-      return true;
+      if (doSubmit) {
+        return true;
+      }
+      else {
+        document.getElementById('gwSearchFormSubmit').disabled = true;
+        showWaitingModal('Searching...');
+        setTimeout(function() { searchForm.submit() }, 0);
+        return false;
+      }
     });
 
     keywordsForm && keywordsForm.addEventListener('submit', function() {
-      document.getElementById('wait-ghostwriter-response-modal').classList.remove('hidden');
-      return true;
+      if (doSubmit) {
+        return true;
+      }
+      else {
+        document.getElementById('gwKeywordsFormSubmit').disabled = true;
+        showWaitingModal('Generating Text...');
+        setTimeout(function() { keywordsForm.submit() }, 0);
+        return false;
+      }
+      
+      
     });
   })();
 </script>
