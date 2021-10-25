@@ -5,6 +5,8 @@ class PagesController < ApplicationController
   before_action :set_cache_control_headers, only: %i[show badge bounty faq robots]
   before_action :authenticate_user!, only: %i[search_new ghostwriter]
 
+  LINE_BREAK = "\n".freeze
+
   def show
     @page = Page.find_by!(slug: params[:slug])
     not_found unless FeatureFlag.accessible?(@page.feature_flag_name, current_user)
@@ -159,7 +161,6 @@ class PagesController < ApplicationController
       session[c] = 0 unless session[c]
       session[c] = (1 + session[c].to_i) % 5 + 1 # let's allow max 5 articles to be cached
       k = ("ghostwriter_article_" + session[c].to_s).to_sym
-      LINE_BREAK = "\n".freeze
       session[k] = "title:" + title + LINE_BREAK + "---" + text
       redirect_to controller: "articles", action: "new", gw_generated: session[c]
     else
