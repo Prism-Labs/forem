@@ -155,7 +155,7 @@ class PagesController < ApplicationController
     status, text = gw_client.generate_with_keywords(keywords)
 
     if status == true
-      title = q + ', ' + keywords.join(', ')
+      title = q
       # See prefill patern: Articles::Builder
       c = :ghostwriter_article_counter
       session[c] = 0 unless session[c]
