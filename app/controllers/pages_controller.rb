@@ -153,9 +153,15 @@ class PagesController < ApplicationController
     status, text = gw_client.generate_with_keywords(keywords)
 
     if status == true
-      # puts(text)
-      session[:ghostwriter_article] = text
-      redirect_to controller: "articles", action: "new", gw_generated: true
+      title = q + ', ' + keywords.join(', ')
+      # See prefill patern: Articles::Builder
+      c = :ghostwriter_article_counter
+      session[c] = 0 unless session[c]
+      session[c] = (1 + session[c].to_i) % 5 + 1 # let's allow max 5 articles to be cached
+      k = ("ghostwriter_article_" + session[c].to_s).to_sym
+      LINE_BREAK = "\n".freeze
+      session[k] = "title:" + title + LINE_BREAK + "---" + text
+      redirect_to controller: "articles", action: "new", gw_generated: session[c]
     else
       redirect_to action: "search_new", q: q, error: text.to_s
     end

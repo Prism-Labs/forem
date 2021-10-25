@@ -225,8 +225,9 @@ class ArticlesController < ApplicationController
     @user_approved_liquid_tags = Users::ApprovedLiquidTags.call(@user)
 
     # Prefill GhostWriter generated text
-    if @prefill.empty? && params[:gw_generated]
-      @prefill = session[:ghostwriter_article].to_s
+    if @prefill.empty? && params[:gw_generated].to_i > 0
+      k = ("ghostwriter_article_" + params[:gw_generated].to_s).to_sym
+      @prefill = session[k] ? session[k].to_s : ""
     end
   end
 
