@@ -86,7 +86,7 @@
       waitModal.classList.remove('hidden');
     }
 
-    searchForm.addEventListener('submit', function() {
+    searchForm.onsubmit = function() {
       if (doSubmit) {
         return true;
       }
@@ -96,9 +96,9 @@
         setTimeout(function() { searchForm.submit() }, 0);
         return false;
       }
-    });
+    };
 
-    keywordsForm && keywordsForm.addEventListener('submit', function() {
+    keywordsForm && (keywordsForm.onsubmit = function() {
       if (doSubmit) {
         return true;
       }
@@ -107,9 +107,7 @@
         showWaitingModal('Generating Text...');
         setTimeout(function() { keywordsForm.submit() }, 0);
         return false;
-      }
-      
-      
+      }     
     });
   })();
 </script>
