@@ -146,7 +146,7 @@ class PagesController < ApplicationController
     q = request.request_parameters.fetch("q", "")
     keywords = request.request_parameters.fetch("keywords", [])
     site = request.request_parameters.fetch("site", "")
-    serp_google_tbs_qdr = req.request_parameters.fetch("serp_google_tbs_qdr", "")
+    serp_google_tbs_qdr = request.request_parameters.fetch("serp_google_tbs_qdr", "")
 
     if keywords.length <= 0
       redirect_to action: "search_new", q: q
