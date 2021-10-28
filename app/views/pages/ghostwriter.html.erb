@@ -46,6 +46,25 @@
               </li>
             <% end %>
           </ul>
+
+          <div class="crayons-fields crayons-fields--horizontal" style="padding: 20px">
+            <div class="crayons-field">
+              <label class="crayons-field__label">Site:</label>
+              <input name="site" class="crayons-textfield" placeholder="reddit.com" />
+            </div>
+            <div class="crayons-field">
+              <label class="crayons-field__label">Time:</label>
+              <select name="serp_google_tbs_qdr" class="crayons-select">
+                <option value="">Any time</option>
+                <option value="y">Past 1 year</option>
+                <option value="m" selected>Past 1 month</option>
+                <option value="w">Past 1 week</option>
+                <option value="d">Past 1 day</option>
+                <option value="h">Past 1 hour</option>
+              </select>
+            </div>
+          </div>
+
           <div class="p-6 text-right">
             <%= submit_tag "Suggest an Article Content", class: "crayons-btn", id: "gwKeywordsFormSubmit" %>
           </div>

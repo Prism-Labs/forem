@@ -25,13 +25,18 @@ module Ghostwriter
     # Parameters
     #  - keywords : Array of string
     #
-    def generate_with_keywords(keywords)
+    def generate_with_keywords(keywords, site, serp_google_tbs_qdr)
       headers = {
         "Accept" => "application/json",
         "X-MyApi-Key" => @api_key,
         "Content-Type" => "application/json"
       }
-      req_body = { keywords: keywords }.to_json
+      req_body = {
+        keywords: keywords,
+        site: site,
+        serp_google_tbs_qdr: serp_google_tbs_qdr,
+        output_format: 'markdown',
+      }.to_json
       resp = self.class.post("/article-generator/write_by_keywords", body: req_body, headers: headers)
 
       raise Error, "GhostWriter API returned invalid status! #{resp.code}" unless resp.code == 200
