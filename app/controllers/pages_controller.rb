@@ -154,7 +154,7 @@ class PagesController < ApplicationController
     end
 
     gw_client = Ghostwriter::GhostwriterClient.new(ApplicationConfig["GHOSTWRITER_API_KEY"])
-    status, text = gw_client.generate_with_keywords(keywords, site: site, serp_google_tbs_qdr: serp_google_tbs_qdr)
+    status, text = gw_client.generate_with_keywords(keywords, site, serp_google_tbs_qdr)
 
     if status == true
       title = q
