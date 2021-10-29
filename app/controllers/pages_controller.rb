@@ -133,8 +133,10 @@ class PagesController < ApplicationController
     unless q.empty?
       search = GoogleSearch.new(q: q, serp_api_key: ApplicationConfig["SERP_API_KEY"])
       hash_results = search.get_hash
-      hash_results[:related_searches].each do |related_search|
-        @autosuggests.append(related_search[:query])
+      unless hash_results[:related_searches].nil?
+        hash_results[:related_searches].each do |related_search|
+          @autosuggests.append(related_search[:query])
+        end
       end
     end
 

@@ -50,7 +50,7 @@
           <div class="crayons-fields crayons-fields--horizontal" style="padding: 20px">
             <div class="crayons-field">
               <label class="crayons-field__label">Site:</label>
-              <input name="site" class="crayons-textfield" placeholder="reddit.com" />
+              <input name="site" class="crayons-textfield" placeholder="for example, reddit.com" value="reddit.com" />
             </div>
             <div class="crayons-field">
               <label class="crayons-field__label">Time:</label>
@@ -69,6 +69,8 @@
             <%= submit_tag "Suggest an Article Content", class: "crayons-btn", id: "gwKeywordsFormSubmit" %>
           </div>
         <% end %>
+      <% elsif !params[:q].empty? %>
+        <p>Couldn't find any related searches! Please try different keyword. </p>
       <% else %>
         <p></p>
       <% end %>
