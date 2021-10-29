@@ -69,7 +69,7 @@
             <%= submit_tag "Suggest an Article Content", class: "crayons-btn", id: "gwKeywordsFormSubmit" %>
           </div>
         <% end %>
-      <% elsif !params[:q].empty? %>
+      <% elsif !params[:q].nil? && !params[:q].empty? %>
         <p>Couldn't find any related searches! Please try different keyword. </p>
       <% else %>
         <p></p>
