@@ -40,13 +40,27 @@ export class SingleArticle extends Component {
    * It's because some features like "liquid tags" are only supported on the server-side.
    */
   async loadRenderedArticle(article) {
-    const json = await this._callJsonAPI(`/api/articles${article.path}`);
+    // const json = await this._callJsonAPI(`/api/articles${article.path}`);
 
-    // assign new attributes
-    Object.assign(article, {...json, processed_html: json.body_html });
+    // // assign new attributes
+    // Object.assign(article, {...json, processed_html: json.body_html });
+
+    // this.setState({
+    //   article: { ...article, ...json }
+    // })
+
+    const response = await fetch(`${article.path}/modal`, {
+      method: 'GET',
+      headers: {
+        'X-CSRF-Token': window.csrfToken
+      },
+      credentials: 'same-origin',
+    });
+    const html = await response.text()
+    Object.assign(article, { processed_html: html });
 
     this.setState({
-      article: { ...article, ...json }
+      article: { ...article, processed_html: html }
     })
   }
 
@@ -60,34 +74,6 @@ export class SingleArticle extends Component {
     })
   }
 
-  articleAuthor = (article) => {
-    const { user = {} } = article;
-    const { username, name, profile_image_90, profile_image } = user;
-    return (
-      <div className="fs-s flex items-center">
-        <a
-          href={`/${username}`}
-          className="crayons-avatar crayons-avatar--l mr-2"
-        >
-          <img
-            src={profile_image_90 || profile_image}
-            alt={name}
-            width="32"
-            height="32"
-            className="crayons-avatar__image"
-            loading="lazy"
-          />
-        </a>
-  
-        <div>
-          <a href={`/${username}`} className="crayons-link fw-medium">
-            {name}
-          </a>
-        </div>
-      </div>
-    );
-  }
-
   articleContent = (
     article,
     currentUserId,
@@ -96,13 +82,12 @@ export class SingleArticle extends Component {
   ) => {
     return (
       <div className="relative">
-        <Header
+        {/* <Header
           article={article}
           currentUserId={currentUserId}
           isModal={isModal}
           onOpenModal={onOpenModal}
-        />
-        { this.articleAuthor(article) }
+        /> */}
         <div
           className="my-4"
           dangerouslySetInnerHTML={{ __html: article.processed_html }} // eslint-disable-line react/no-danger
@@ -393,15 +378,15 @@ export class SingleArticle extends Component {
     currentUserId,
     onOpenModal,
   ) => {
+    setTimeout(() => {
+      window.initializePage();
+    }, 10)
     return (
       <div
-        className="single-article relative crayons-layout crayons-layout--3-cols crayons-layout--article"
+        className="single-article relative"
         id={`single-article-${article.id}`}
         data-testid={`single-article-${article.id}`}
       >
-        <aside className="crayons-layout__sidebar-left" aria-label="Article actions">
-          {this.articleSideBar(article, currentUserId)}
-        </aside>
         <div className="article-content px-3">
           {this.articleContent(
             article,
@@ -410,10 +395,28 @@ export class SingleArticle extends Component {
             true,
           )}
         </div>
-        <aside className="crayons-layout__sidebar-right" aria-label="Author details">
-          {this.articleSideBarRight(article)}
-        </aside>
       </div>
+
+      // <div
+      //   className="single-article relative crayons-layout crayons-layout--3-cols crayons-layout--article"
+      //   id={`single-article-${article.id}`}
+      //   data-testid={`single-article-${article.id}`}
+      // >
+      //   <aside className="crayons-layout__sidebar-left" aria-label="Article actions">
+      //     {this.articleSideBar(article, currentUserId)}
+      //   </aside>
+      //   <div className="article-content px-3">
+      //     {this.articleContent(
+      //       article,
+      //       currentUserId,
+      //       onOpenModal,
+      //       true,
+      //     )}
+      //   </div>
+      //   <aside className="crayons-layout__sidebar-right" aria-label="Author details">
+      //     {this.articleSideBarRight(article)}
+      //   </aside>
+      // </div>
     );
   };
 
