@@ -1,8 +1,8 @@
 import { h } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 import PropTypes from 'prop-types';
-import { useListNavigation } from '../shared/components/useListNavigation';
-import { useKeyboardShortcuts } from '../shared/components/useKeyboardShortcuts';
+import { ListNavigation } from '../shared/components/useListNavigation';
+import { KeyboardShortcuts } from '../shared/components/useKeyboardShortcuts';
 import { getLocation } from './utils';
 import { Modal } from './components/Modal';
 
@@ -171,17 +171,21 @@ export const Feed = ({ timeFrame, renderFeed }) => {
    * Open Article Modal
    */
   function handleOpenModal(article) {
+    window.console.log('handleOpenModal', article);
+    setLocation(timeFrame, article.path);
     setModalArticle(article);
     setIsModalOpen(true);
-    setLocation(timeFrame, article.path);
   };
 
   /**
    * Close Article Modal
    */
   function handleCloseModal() {
-    setIsModalOpen(false);
-    setLocation(timeFrame, null);
+    if (isModalOpen) {
+      window.console.log('handleCloseModal');
+      setIsModalOpen(false);
+      setLocation(timeFrame, null);
+    }
   }
 
   function setLocation(timeFrame, path) {
@@ -197,13 +201,67 @@ export const Feed = ({ timeFrame, renderFeed }) => {
     }, 1000);
   }
 
-  useListNavigation(
-    'article.crayons-story',
-    'a.crayons-story__hidden-navigation-link',
-    'div.paged-stories',
-  );
+  const onArrowLeft = (event) => {
+    window.console.log('right left', event, isModalOpen, modalArticle)
+    if (isModalOpen && modalArticle) {
+      event && (event.preventDefault(), event.stopPropagation());
+      setIsModalOpen(false);
+      // show previous article on the modal
 
-  useKeyboardShortcuts({
+      let newModalArticle;
+      if (pinnedArticle && modalArticle === pinnedArticle) {
+        // reached the first one
+        newModalArticle = null;
+      }
+      else if(feedItems.length > 0 && modalArticle === feedItems[0]) {
+        newModalArticle = pinnedArticle ? pinnedArticle : null;
+      }
+      else if(feedItems.length > 0) {
+        const idx = feedItems.indexOf(modalArticle);
+        newModalArticle = feedItems[idx - 1];
+      }
+
+      window.console.log(newModalArticle);
+      setModalArticle(newModalArticle);
+      if (newModalArticle) {
+        setTimeout(() => {
+          setIsModalOpen(true);
+        })
+      }
+    }
+  }
+
+  const onArrowRight = (event) => {
+    window.console.log('right arrow', event, isModalOpen, modalArticle, feedItems)
+    if (isModalOpen && modalArticle) {
+      event && (event.preventDefault(), event.stopPropagation());
+      setIsModalOpen(false);
+
+      // show next article on the modal
+      let newModalArticle;
+      if (pinnedArticle && modalArticle === pinnedArticle && feedItems.length > 0) {
+        newModalArticle = feedItems[0];
+      }
+      else if(feedItems.length > 0 && modalArticle === feedItems[feedItems.length - 1]) {
+        // already reached the end
+        newModalArticle = null;
+      }
+      else if(feedItems.length > 0) {
+        const idx = feedItems.indexOf(modalArticle);
+        newModalArticle = feedItems[idx + 1];
+      }
+
+      window.console.log(newModalArticle);
+      setModalArticle(newModalArticle);
+      if (newModalArticle) {
+        setTimeout(() => {
+          setIsModalOpen(true);
+        })
+      }
+    }
+  };
+
+  const shortcuts = {
     b: (event) => {
       const article = event.target?.closest('article.crayons-story');
 
@@ -211,7 +269,13 @@ export const Feed = ({ timeFrame, renderFeed }) => {
 
       article.querySelector('button[id^=article-save-button]')?.click();
     },
-  });
+    'arrowleft': (event) => { // left arrow
+      onArrowLeft(event);
+    },
+    'arrowright': (event) => { // right arrow
+      onArrowRight(event);
+    },
+  };
 
   const shouldRenderModal = isModalOpen && modalArticle;
 
@@ -232,15 +296,18 @@ export const Feed = ({ timeFrame, renderFeed }) => {
         })
       )}
 
+      <ListNavigation
+          itemSelector="article.crayons-story"
+          focusableSelector="a.crayons-story__hidden-navigation-link"
+          waterfallItemContainerSelector="div.paged-stories" />
+
+      <KeyboardShortcuts shortcuts={shortcuts} />
+
       {shouldRenderModal && (
         <Modal
           article={modalArticle}
           currentUserId={currentUserId}
-          onChangeDraftingMessage={null}
-          onClick={handleCloseModal}
-          onOpenModal={handleOpenModal}
-          onSubmit={null}
-          message={null}
+          onClose={handleCloseModal}
       />
       )}
     </div>
