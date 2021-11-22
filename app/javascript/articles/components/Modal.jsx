@@ -6,10 +6,8 @@ import { Modal as CrayonsModal } from '@crayons';
 
 export const Modal = ({
   currentUserId,
-  onAddTag,
   onChangeDraftingMessage,
   onClick,
-  onChangeCategory,
   onOpenModal,
   onSubmit,
   article,
@@ -26,8 +24,6 @@ export const Modal = ({
       >
         <div>
           <SingleArticle
-            onAddTag={onAddTag}
-            onChangeCategory={onChangeCategory}
             article={article}
             currentUserId={currentUserId}
             onOpenModal={onOpenModal}
@@ -51,10 +47,8 @@ export const Modal = ({
 
 Modal.propTypes = {
   article: PropTypes.isRequired,
-  onAddTag: PropTypes.func,
   onChangeDraftingMessage: PropTypes.func,
   onClick: PropTypes.func.isRequired,
-  onChangeCategory: PropTypes.func,
   onOpenModal: PropTypes.func.isRequired,
   onSubmit: PropTypes.func,
   currentUserId: PropTypes.number,

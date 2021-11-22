@@ -236,10 +236,8 @@ export const Feed = ({ timeFrame, renderFeed }) => {
         <Modal
           article={modalArticle}
           currentUserId={currentUserId}
-          onAddTag={null}
           onChangeDraftingMessage={null}
           onClick={handleCloseModal}
-          onChangeCategory={null}
           onOpenModal={handleOpenModal}
           onSubmit={null}
           message={null}

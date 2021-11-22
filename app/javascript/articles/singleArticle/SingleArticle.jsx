@@ -2,7 +2,6 @@ import { h, Component } from 'preact';
 import PropTypes from 'prop-types';
 
 import { Header } from './Header';
-import { AuthorInfo } from './AuthorInfo';
 import { articlePropTypes } from './articlePropTypes';
 
 export class SingleArticle extends Component {
@@ -41,7 +40,7 @@ export class SingleArticle extends Component {
    * It's because some features like "liquid tags" are only supported on the server-side.
    */
   async loadRenderedArticle(article) {
-    const json = await this._callJsonAPI(`/api/articles/${article.path}`);
+    const json = await this._callJsonAPI(`/api/articles${article.path}`);
 
     // assign new attributes
     Object.assign(article, {...json, processed_html: json.body_html });
@@ -61,10 +60,37 @@ export class SingleArticle extends Component {
     })
   }
 
+  articleAuthor = (article) => {
+    const { user = {} } = article;
+    const { username, name, profile_image_90, profile_image } = user;
+    return (
+      <div className="fs-s flex items-center">
+        <a
+          href={`/${username}`}
+          className="crayons-avatar crayons-avatar--l mr-2"
+        >
+          <img
+            src={profile_image_90 || profile_image}
+            alt={name}
+            width="32"
+            height="32"
+            className="crayons-avatar__image"
+            loading="lazy"
+          />
+        </a>
+  
+        <div>
+          <a href={`/${username}`} className="crayons-link fw-medium">
+            {name}
+          </a>
+        </div>
+      </div>
+    );
+  }
+
   articleContent = (
     article,
     currentUserId,
-    onChangeCategory,
     onOpenModal,
     isModal = false,
   ) => {
@@ -76,7 +102,7 @@ export class SingleArticle extends Component {
           isModal={isModal}
           onOpenModal={onOpenModal}
         />
-        <AuthorInfo article={article} onCategoryClick={onChangeCategory} />
+        { this.articleAuthor(article) }
         <div
           className="my-4"
           dangerouslySetInnerHTML={{ __html: article.processed_html }} // eslint-disable-line react/no-danger
@@ -88,9 +114,7 @@ export class SingleArticle extends Component {
   articleInline = (
     article,
     currentUserId,
-    onChangeCategory,
     onOpenModal,
-    onAddTag,
   ) => {
     return (
       <div
@@ -102,9 +126,7 @@ export class SingleArticle extends Component {
           {this.articleContent(
             article,
             currentUserId,
-            onChangeCategory,
             onOpenModal,
-            onAddTag,
           )}
         </div>
       </div>
@@ -369,9 +391,7 @@ export class SingleArticle extends Component {
   articleModal = (
     article,
     currentUserId,
-    onChangeCategory,
     onOpenModal,
-    onAddTag,
   ) => {
     return (
       <div
@@ -386,9 +406,7 @@ export class SingleArticle extends Component {
           {this.articleContent(
             article,
             currentUserId,
-            onChangeCategory,
             onOpenModal,
-            onAddTag,
             true,
           )}
         </div>
@@ -402,25 +420,19 @@ export class SingleArticle extends Component {
   render() {
     const {
       currentUserId,
-      onChangeCategory,
       onOpenModal,
       isOpen,
-      onAddTag,
     } = this.props;
     return isOpen
       ? this.articleModal(
           this.state.article,
           currentUserId,
-          onChangeCategory,
           onOpenModal,
-          onAddTag,
         )
       : this.articleInline(
         this.state.article,
           currentUserId,
-          onChangeCategory,
           onOpenModal,
-          onAddTag,
         );
   }
 }
@@ -428,10 +440,8 @@ export class SingleArticle extends Component {
 SingleArticle.propTypes = {
   article: articlePropTypes.isRequired,
   onOpenModal: PropTypes.func.isRequired,
-  onChangeCategory: PropTypes.func,
   isOpen: PropTypes.bool.isRequired,
   currentUserId: PropTypes.number,
-  onAddTag: PropTypes.func,
 };
 
 SingleArticle.defaultProps = {
