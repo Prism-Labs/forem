@@ -71,6 +71,7 @@ export const renderFeed = (timeFrame) => {
         podcastEpisodes,
         bookmarkedFeedItems,
         bookmarkClick,
+        onOpenModal,
       }) => {
         if (feedItems.length === 0) {
           // Fancy loading ✨
@@ -79,6 +80,7 @@ export const renderFeed = (timeFrame) => {
 
         const commonProps = {
           bookmarkClick,
+          onOpenModal,
         };
 
         const feedStyle = JSON.parse(document.body.dataset.user).feed_style;

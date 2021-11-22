@@ -606,3 +606,14 @@
     );
   }
 }
+
+// modal on the article feed
+.articles-modal {
+  .crayons-modal__box {
+    max-width: 1000px;
+  }
+
+  .crayons-modal__box__body {
+    padding: 0;
+  }
+}

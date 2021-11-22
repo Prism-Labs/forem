@@ -22,6 +22,7 @@ export const Article = ({
   isBookmarked,
   bookmarkClick,
   feedStyle,
+  onOpenModal,
 }) => {
   if (article && article.type_of === 'podcast_episodes') {
     return <PodcastArticle article={article} />;
@@ -65,7 +66,11 @@ export const Article = ({
         onClick={(event) => {
           const { classList } = event.target;
           if (clickableClassList.includes(...classList)) {
-            if (event.which > 1 || event.metaKey || event.ctrlKey) {
+            if (onOpenModal) {
+              event.preventDefault();
+              onOpenModal(article);
+            }
+            else if (event.which > 1 || event.metaKey || event.ctrlKey) {
               // Indicates should open in _blank
               window.open(article.path, '_blank');
             } else {
@@ -161,4 +166,5 @@ Article.propTypes = {
   isFeatured: PropTypes.bool,
   feedStyle: PropTypes.string,
   bookmarkClick: PropTypes.func.isRequired,
+  onOpenModal: PropTypes.func,
 };

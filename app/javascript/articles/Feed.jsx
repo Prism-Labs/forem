@@ -3,6 +3,9 @@ import { useEffect, useState } from 'preact/hooks';
 import PropTypes from 'prop-types';
 import { useListNavigation } from '../shared/components/useListNavigation';
 import { useKeyboardShortcuts } from '../shared/components/useKeyboardShortcuts';
+import { getLocation } from './utils';
+import { Modal } from './components/Modal';
+
 
 /* global userData sendHapticMessage showLoginModal buttonFormData renderNewSidebarCount */
 
@@ -15,6 +18,11 @@ export const Feed = ({ timeFrame, renderFeed }) => {
   const [feedItems, setFeedItems] = useState([]);
   const [podcastEpisodes, setPodcastEpisodes] = useState([]);
   const [onError, setOnError] = useState(false);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalArticle, setModalArticle] = useState(null);
+
+  const [currentUserId, setCurrentUserId] = useState(null);
 
   useEffect(() => {
     setPodcastEpisodes(getPodcastEpisodes());
@@ -70,6 +78,8 @@ export const Feed = ({ timeFrame, renderFeed }) => {
 
     fetchFeedItems();
   }, [timeFrame, onError]);
+
+  setUser();
 
   /**
    * Retrieves feed data.
@@ -157,6 +167,36 @@ export const Feed = ({ timeFrame, renderFeed }) => {
     }
   }
 
+  /**
+   * Open Article Modal
+   */
+  function handleOpenModal(article) {
+    setModalArticle(article);
+    setIsModalOpen(true);
+    setLocation(timeFrame, article.path);
+  };
+
+  /**
+   * Close Article Modal
+   */
+  function handleCloseModal() {
+    setIsModalOpen(false);
+    setLocation(timeFrame, null);
+  }
+
+  function setLocation(timeFrame, path) {
+    const newLocation = getLocation({ timeFrame, path });
+    window.history.replaceState(null, null, newLocation);
+  }
+
+  function setUser() {
+    setTimeout(() => {
+      if (window.currentUser && currentUserId === null) {
+        setCurrentUserId(window.currentUser.id);
+      }
+    }, 1000);
+  }
+
   useListNavigation(
     'article.crayons-story',
     'a.crayons-story__hidden-navigation-link',
@@ -173,6 +213,8 @@ export const Feed = ({ timeFrame, renderFeed }) => {
     },
   });
 
+  const shouldRenderModal = isModalOpen && modalArticle;
+
   return (
     <div id="rendered-article-feed">
       {onError ? (
@@ -186,7 +228,22 @@ export const Feed = ({ timeFrame, renderFeed }) => {
           podcastEpisodes,
           bookmarkedFeedItems,
           bookmarkClick,
+          onOpenModal: handleOpenModal,
         })
+      )}
+
+      {shouldRenderModal && (
+        <Modal
+          article={modalArticle}
+          currentUserId={currentUserId}
+          onAddTag={null}
+          onChangeDraftingMessage={null}
+          onClick={handleCloseModal}
+          onChangeCategory={null}
+          onOpenModal={handleOpenModal}
+          onSubmit={null}
+          message={null}
+      />
       )}
     </div>
   );
