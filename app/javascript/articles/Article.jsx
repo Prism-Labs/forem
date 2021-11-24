@@ -37,6 +37,7 @@ export const Article = ({
     'crayons-story__tags',
     'crayons-story__bottom',
     'crayons-story__tertiary',
+    'crayons-story__title-link',
   ];
 
   let showCover =
@@ -45,6 +46,24 @@ export const Article = ({
 
   // pinned article can have a cover image
   showCover = showCover || (article.pinned && article.main_image);
+
+  const onClick = (event) => {
+    const { classList } = event.target;
+    if (clickableClassList.includes(...classList)) {
+      if (onOpenModal) {
+        event.preventDefault();
+        onOpenModal(article);
+      }
+      else if (event.which > 1 || event.metaKey || event.ctrlKey) {
+        // Indicates should open in _blank
+        window.open(article.path, '_blank');
+      } else {
+        const fullUrl = window.location.origin + article.path; // InstantClick deals with full urls
+        InstantClick.preload(fullUrl);
+        InstantClick.display(fullUrl);
+      }
+    }
+  };
 
   return (
     <article
@@ -63,23 +82,7 @@ export const Article = ({
       </a>
       <div
         role="presentation"
-        onClick={(event) => {
-          const { classList } = event.target;
-          if (clickableClassList.includes(...classList)) {
-            if (onOpenModal) {
-              event.preventDefault();
-              onOpenModal(article);
-            }
-            else if (event.which > 1 || event.metaKey || event.ctrlKey) {
-              // Indicates should open in _blank
-              window.open(article.path, '_blank');
-            } else {
-              const fullUrl = window.location.origin + article.path; // InstantClick deals with full urls
-              InstantClick.preload(fullUrl);
-              InstantClick.display(fullUrl);
-            }
-          }
-        }}
+        onClick={onClick}
       >
         {article.cloudinary_video_url && <Video article={article} />}
 
@@ -110,7 +113,7 @@ export const Article = ({
           </div>
 
           <div className="crayons-story__indention">
-            <ContentTitle article={article} />
+            <ContentTitle article={article} noLink={!!onOpenModal} />
             <TagList tags={article.tag_list} flare_tag={article.flare_tag} />
 
             {article.class_name === 'Article' && (

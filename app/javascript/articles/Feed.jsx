@@ -3,9 +3,9 @@ import { useEffect, useState } from 'preact/hooks';
 import PropTypes from 'prop-types';
 import { ListNavigation } from '../shared/components/useListNavigation';
 import { KeyboardShortcuts } from '../shared/components/useKeyboardShortcuts';
+import { useMediaQuery, BREAKPOINTS } from '../shared/components/useMediaQuery';
 import { getLocation } from './utils';
 import { Modal } from './components/Modal';
-
 
 /* global userData sendHapticMessage showLoginModal buttonFormData renderNewSidebarCount */
 
@@ -278,6 +278,7 @@ export const Feed = ({ timeFrame, renderFeed }) => {
   };
 
   const shouldRenderModal = isModalOpen && modalArticle;
+  const isSmallScreen = useMediaQuery(`(max-width: ${BREAKPOINTS.Small}px)`);
 
   return (
     <div id="rendered-article-feed">
@@ -292,7 +293,7 @@ export const Feed = ({ timeFrame, renderFeed }) => {
           podcastEpisodes,
           bookmarkedFeedItems,
           bookmarkClick,
-          onOpenModal: handleOpenModal,
+          onOpenModal: isSmallScreen ? null : handleOpenModal, // let's disable article modal for small screens
         })
       )}
 
