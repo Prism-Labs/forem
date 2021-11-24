@@ -29,6 +29,61 @@ export const Feed = ({ timeFrame, renderFeed }) => {
   }, []);
 
   useEffect(() => {
+    const keydownEventHandler = (event) => {
+      if ((event.key.toLowerCase() == 'arrowleft' || event.key.toLowerCase() == 'arrowright') && isModalOpen && modalArticle) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        setIsModalOpen(false);
+        // show previous article on the modal
+
+        let newModalArticle;
+
+        if (event.key.toLowerCase() == 'arrowleft') {
+          if (pinnedArticle && modalArticle === pinnedArticle) {
+            // reached the first one
+            newModalArticle = null;
+          }
+          else if(feedItems.length > 0 && modalArticle === feedItems[0]) {
+            newModalArticle = pinnedArticle ? pinnedArticle : null;
+          }
+          else if(feedItems.length > 0) {
+            const idx = feedItems.indexOf(modalArticle);
+            newModalArticle = feedItems[idx - 1];
+          }
+        }
+        else if (event.key.toLowerCase() == 'arrowright') {
+          if (pinnedArticle && modalArticle === pinnedArticle && feedItems.length > 0) {
+            newModalArticle = feedItems[0];
+          }
+          else if(feedItems.length > 0 && modalArticle === feedItems[feedItems.length - 1]) {
+            // already reached the end
+            newModalArticle = null;
+          }
+          else if(feedItems.length > 0) {
+            const idx = feedItems.indexOf(modalArticle);
+            newModalArticle = feedItems[idx + 1];
+          }
+        }
+
+        setModalArticle(newModalArticle);
+        if (newModalArticle) {
+          setTimeout(() => {
+            setIsModalOpen(true);
+          })
+        }
+        
+      }
+    };
+
+    window.addEventListener('keydown', keydownEventHandler);
+
+    return () => {
+      window.removeEventListener('keydown', keydownEventHandler);
+    };
+  }, [isModalOpen, modalArticle, feedItems, pinnedArticle]);
+
+  useEffect(() => {
     const fetchFeedItems = async () => {
       try {
         if (onError) setOnError(false);
@@ -201,66 +256,6 @@ export const Feed = ({ timeFrame, renderFeed }) => {
     }, 1000);
   }
 
-  const onArrowLeft = (event) => {
-    window.console.log('right left', event, isModalOpen, modalArticle)
-    if (isModalOpen && modalArticle) {
-      event && (event.preventDefault(), event.stopPropagation());
-      setIsModalOpen(false);
-      // show previous article on the modal
-
-      let newModalArticle;
-      if (pinnedArticle && modalArticle === pinnedArticle) {
-        // reached the first one
-        newModalArticle = null;
-      }
-      else if(feedItems.length > 0 && modalArticle === feedItems[0]) {
-        newModalArticle = pinnedArticle ? pinnedArticle : null;
-      }
-      else if(feedItems.length > 0) {
-        const idx = feedItems.indexOf(modalArticle);
-        newModalArticle = feedItems[idx - 1];
-      }
-
-      window.console.log(newModalArticle);
-      setModalArticle(newModalArticle);
-      if (newModalArticle) {
-        setTimeout(() => {
-          setIsModalOpen(true);
-        })
-      }
-    }
-  }
-
-  const onArrowRight = (event) => {
-    window.console.log('right arrow', event, isModalOpen, modalArticle, feedItems)
-    if (isModalOpen && modalArticle) {
-      event && (event.preventDefault(), event.stopPropagation());
-      setIsModalOpen(false);
-
-      // show next article on the modal
-      let newModalArticle;
-      if (pinnedArticle && modalArticle === pinnedArticle && feedItems.length > 0) {
-        newModalArticle = feedItems[0];
-      }
-      else if(feedItems.length > 0 && modalArticle === feedItems[feedItems.length - 1]) {
-        // already reached the end
-        newModalArticle = null;
-      }
-      else if(feedItems.length > 0) {
-        const idx = feedItems.indexOf(modalArticle);
-        newModalArticle = feedItems[idx + 1];
-      }
-
-      window.console.log(newModalArticle);
-      setModalArticle(newModalArticle);
-      if (newModalArticle) {
-        setTimeout(() => {
-          setIsModalOpen(true);
-        })
-      }
-    }
-  };
-
   const shortcuts = {
     b: (event) => {
       const article = event.target?.closest('article.crayons-story');
@@ -268,13 +263,7 @@ export const Feed = ({ timeFrame, renderFeed }) => {
       if (!article) return;
 
       article.querySelector('button[id^=article-save-button]')?.click();
-    },
-    'arrowleft': (event) => { // left arrow
-      onArrowLeft(event);
-    },
-    'arrowright': (event) => { // right arrow
-      onArrowRight(event);
-    },
+    }
   };
 
   const shouldRenderModal = isModalOpen && modalArticle;
