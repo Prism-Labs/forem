@@ -34,7 +34,12 @@ class ImageUploadsController < ApplicationController
       return
     end
 
-    links = uploaders.map(&:url)
+    # let's ensure that we return full url, because some fields to store image url
+    # will accept only the full URLs starting with http or https.
+    # If the AWS Storage is not configured for file upload, the files will be uploaded to
+    # the server itself, and this is when the uploaded url becomes the path on the server
+    # like : /uploads/images/xyz.jpg
+    links = uploaders.map(&:url).map { |x| x.starts_with?("http") ? x : URL.url(x) }
     respond_to do |format|
       format.json { render json: { links: links }, status: :ok }
     end
