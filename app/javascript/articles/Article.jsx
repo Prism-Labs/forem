@@ -37,8 +37,12 @@ export const Article = ({
     'crayons-story__tags',
     'crayons-story__bottom',
     'crayons-story__tertiary',
-    'crayons-story__title-link',
   ];
+
+  if (onOpenModal) {
+    clickableClassList.push('crayons-story__title-link');
+    clickableClassList.push('crayons-story__cover');
+  }
 
   let showCover =
     (isFeatured || (feedStyle === 'rich' && article.main_image)) &&
@@ -86,7 +90,7 @@ export const Article = ({
       >
         {article.cloudinary_video_url && <Video article={article} />}
 
-        {showCover && <ArticleCoverImage article={article} />}
+        {showCover && <ArticleCoverImage article={article} noLink={!!onOpenModal} />}
         <div className="crayons-story__body">
           <div className="crayons-story__top">
             <Meta article={article} organization={article.organization} />
