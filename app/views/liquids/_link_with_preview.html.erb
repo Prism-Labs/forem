@@ -1,0 +1,38 @@
+<div class="liquid-tag__link-with-preview">
+<a href="<%= url %>"><%= url %></a>
+<blockquote class="liquid-tag__link-preview">
+  <% case type %>
+  <% when "photo" %>
+
+    <h4><%= title %></h4>
+    <figure>
+      <img src="<%= url %>" width="<%= width %>"  width="<%= height %>" />
+      <figcaption><%= description %></figcaption>
+    </figure>
+
+  <% when "video" %>
+
+    <%= html.html_safe %>
+
+  <% when 'link' %>
+
+    <% if defined?(html) %>
+      <%= html.html_safe %>
+    <% else %>
+      <h4><%= title %></h4>
+      <p><%= description %>
+        <% if defined?(thumbnail_url) %>
+          <img src="<%= thumbnail_url %>" width="<%= thumbnail_width %>" height="<%= thumbnail_height %>" alt="" />
+        <% end %>
+      </p>
+    <% end %>
+
+  <% when 'rich' %>
+
+    <%= html.html_safe %>
+
+  <% else %>
+
+  <% end %>
+</blockquote>
+</div>

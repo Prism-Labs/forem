@@ -28,6 +28,25 @@
 
 - [ ]  Find a way to include global js tags in footer for ads or google tag manager script
 
+- [x]  When clicking on an article on the feed, popup a modal with the post view rather than redirect to the single article view.
+
+  ```liquid
+  {% tiktok https://www.tiktok.com/@scout2015/video/6718335390845095173 %}
+  ```
+
+  Files:
+  - ADDED or MODIFIED `app/javascripts/articles/*`
+
+- [x]  Create 'linkwithpreview' tag to embed url with previews. Previews will be generated using Embedly API.
+
+  ```liquid
+  {% linkwithpreview "url" %}
+  ```
+
+  Files:
+  - ADDED `app/liquid_tags/link_with_preview_tag.rb`
+  - ADDED `app/views/liquids/_link_with_preview.html.erb`
+
 ## Optional Features of Forem
 
 Some of the optional features of Forem is enabled/disabled using Feature Flags.
