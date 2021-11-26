@@ -6,6 +6,7 @@ import { KeyboardShortcuts } from '../shared/components/useKeyboardShortcuts';
 import { useMediaQuery, BREAKPOINTS } from '../shared/components/useMediaQuery';
 import { getLocation } from './utils';
 import { Modal } from './components/Modal';
+import { article } from './__tests__/utilities/articleUtilities';
 
 /* global userData sendHapticMessage showLoginModal buttonFormData renderNewSidebarCount */
 
@@ -239,7 +240,8 @@ export const Feed = ({ timeFrame, renderFeed }) => {
     if (isModalOpen) {
       window.console.log('handleCloseModal');
       setIsModalOpen(false);
-      setLocation(timeFrame, null);
+      if (window.location.path == article.path)
+        setLocation(timeFrame, null);
     }
   }
 
