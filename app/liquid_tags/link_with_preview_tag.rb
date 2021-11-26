@@ -10,11 +10,21 @@ class LinkWithPreviewTag < LiquidTagBase
   include ActionView::Helpers::SanitizeHelper
 
   PARTIAL = "liquids/link_with_preview".freeze
+  DUNE_XYZ_URL_REGEXP = %r{\A(https|http)://dune\.xyz/embeds/.*\Z}
 
   def initialize(_tag_name, url, _parse_context)
     super
     @url = ActionController::Base.helpers.strip_tags(url).strip
-    @oembed = parse_url
+
+    if DUNE_XYZ_URL_REGEXP.match @url
+      @oembed = {
+        type: "link",
+        url: @url,
+        html: "<div style=\"position:relative;height: 320px;\"><iframe src=\"#{@url}\" style=\"position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; border-radius: 1px; pointer-events: auto; background-color: rgb(247, 246, 245);\"></iframe></div>",
+      }
+    else
+      @oembed = parse_url
+    end
   end
 
   def render(_context)
