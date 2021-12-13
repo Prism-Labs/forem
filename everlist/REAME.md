@@ -47,6 +47,10 @@
   - ADDED `app/liquid_tags/link_with_preview_tag.rb`
   - ADDED `app/views/liquids/_link_with_preview.html.erb`
 
+- []  Create an automated post using [Dune API](https://dune.xyz)
+  Files:
+  - ADDED `app/workers/everlist/dune_autopost_worker
+
 ## Optional Features of Forem
 
 Some of the optional features of Forem is enabled/disabled using Feature Flags.
