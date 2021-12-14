@@ -3,7 +3,7 @@ module Everlist
     include Sidekiq::Worker
 
     sidekiq_options queue: :medium_priority,
-                    lock: :until_executing,
+                    lock: :until_and_while_executing,
                     on_conflict: :replace,
                     retry: false
 
@@ -52,6 +52,63 @@ module Everlist
       end
     end
 
+    def generate_article_params_json(use_dynamic_preview)
+      dune_url = "https://dune.xyz/embeds/4298/8356/3db4e10d-24f1-41db-b88e-8cf40ec4cefc"
+      dune_url2 = "https://dune.xyz/embeds/7872/15688/976a8f77-d949-45f3-97ce-9881987b8ff8"
+
+      prices = _get_recent_gas_prices
+      if !prices.nil? && prices["median_gas_price_yesterday"].positive?
+        gas_price_change = (prices["median_gas_price_today"] - prices["median_gas_price_yesterday"]) / prices["median_gas_price_yesterday"] * 100.0
+        gas_price_change_text = "Gas prices changed [[#{helper.number_to_percentage(gas_price_change, precision: 1)}]] since yesterday."
+      else
+        gas_price_change_text = ""
+      end
+
+      gas_prices_text = "Gas prices for the past 24hrs
+Eth Transfer: #{helper.number_to_currency(prices['cost_of_eth_transfer'])}
+ERC20 Transfer: #{helper.number_to_currency(prices['cost_of_erc20_transfer'])}
+ERC20 Approval: #{helper.number_to_currency(prices['cost_of_erc20_approval'])}
+Uniswap trade: #{helper.number_to_currency(prices['cost_of_uniswap_trade'])}
+Compound Deposit: #{helper.number_to_currency(prices['cost_of_compound_erc20_deposit'])}"
+
+      # Let's pull screenshot of the graph to be used as a main image
+      # first use Embedly API to pull Oembed data
+      embedly_api = Embedly::API.new
+
+      obj = embedly_api.oembed url: dune_url
+      oembed = obj[0].marshal_dump
+
+      if use_dynamic_preview
+        preview_url_text = "{% linkwithpreview #{dune_url} %}"
+        preview_url_text2 = "{% linkwithpreview #{dune_url2} %}"
+
+        # This thumbnail is provided by Dune.xyz and changes over time
+        main_image = oembed[:thumbnail_url]
+      else
+        obj2 = embedly_api.oembed url: dune_url2
+        oembed2 = obj2[0].marshal_dump
+
+        # This thumbnail is provided by Dune.xyz and changes over time,
+        # So we want to download it and upload it to our own server and fixate it.
+        screenshot = _download_and_upload_image(oembed[:thumbnail_url])
+        screenshot2 = _download_and_upload_image(oembed2[:thumbnail_url])
+
+        preview_url_text = "[#{dune_url}](#{dune_url})\n![#{dune_url}](#{screenshot})"
+        preview_url_text2 = "[#{dune_url2}](#{dune_url2})\n![#{dune_url2}](#{screenshot2})"
+
+        main_image = screenshot
+      end
+
+      article_params = {
+        tags: ["gas", "ethereum"],
+        description: "",
+        series: "Gas prices",
+        body_markdown: "#{gas_price_change_text}\n#{preview_url_text}\n\n#{gas_prices_text}\n\n#{preview_url_text2}",
+        published: true,
+        main_image: main_image,
+      }
+    end
+
     def perform(update_to_static)
       # create an article, author will be the admin
 
@@ -59,90 +116,19 @@ module Everlist
       @user = Role.find_by(name: "super_admin").users.first
 
       title = "Gas price report #{Time.zone.today.strftime('%m/%d/%y')}"
-      dune_url = "https://dune.xyz/embeds/4298/8356/3db4e10d-24f1-41db-b88e-8cf40ec4cefc"
-      dune_url2 = "https://dune.xyz/embeds/7872/15688/976a8f77-d949-45f3-97ce-9881987b8ff8"
 
       existing = Article.find_by(title: title)
       if existing.nil?
-        # Let's pull screenshot of the graph to be used as a main image
-        # first use Embedly API to pull Oembed data
-        embedly_api = Embedly::API.new
-        obj = embedly_api.oembed url: dune_url
-        oembed = obj[0].marshal_dump
-        # This thumbnail is provided by Dune.xyz and changes over time
-        main_image = oembed[:thumbnail_url]
-
-        prices = _get_recent_gas_prices
-        if !prices.nil? && prices["median_gas_price_yesterday"].positive?
-          gas_price_change = (prices["median_gas_price_today"] - prices["median_gas_price_yesterday"]) / prices["median_gas_price_yesterday"] * 100.0
-          gas_price_change_text = "Gas prices changed [[#{helper.number_to_percentage(gas_price_change, precision: 1)}]] since yesterday."
-        else
-          gas_price_change_text = ""
-        end
-
-        article_params = {
-          title: title,
-          tags: ["gas", "ethereum"],
-          description: "",
-          series: "Gas prices",
-          body_markdown: "#{gas_price_change_text}
-{% linkwithpreview #{dune_url} %}
-
-Gas prices for the past 24hrs
-Eth Transfer: #{helper.number_to_currency(prices['cost_of_eth_transfer'])}
-ERC20 Transfer: #{helper.number_to_currency(prices['cost_of_erc20_transfer'])}
-ERC20 Approval: #{helper.number_to_currency(prices['cost_of_erc20_approval'])}
-Uniswap trade: #{helper.number_to_currency(prices['cost_of_uniswap_trade'])}
-Compound Deposit: #{helper.number_to_currency(prices['cost_of_compound_erc20_deposit'])}
-
-{% linkwithpreview #{dune_url2} %}",
-          published: true,
-          main_image: main_image,
-        }
+        article_params = generate_article_params_json(true)
+        article_params[:title] = title
 
         # Create an article post with live preview link
-        article = Articles::Creator.call(@user, article_params)
-
-      elsif update_to_static
-        # let's update the existing article
-        # Let's pull screenshot of the graph to be used as a main image
-        # first use Embedly API to pull Oembed data
-        embedly_api = Embedly::API.new
-        obj = embedly_api.oembed url: dune_url
-        oembed = obj[0].marshal_dump
-        # This thumbnail is provided by Dune.xyz and changes over time,
-        # So we want to download it and upload it to our own server and fixate it.
-        screenshot = _download_and_upload_image(oembed[:thumbnail_url])
-
-        obj2 = embedly_api.oembed url: dune_url2
-        oembed2 = obj2[0].marshal_dump
-        # This thumbnail is provided by Dune.xyz and changes over time,
-        # So we want to download it and upload it to our own server and fixate it.
-        screenshot2 = _download_and_upload_image(oembed2[:thumbnail_url])
-
-        prices = _get_recent_gas_prices
-        if !prices.nil? && prices["median_gas_price_yesterday"].positive?
-          gas_price_change = (prices["median_gas_price_today"] - prices["median_gas_price_yesterday"]) / prices["median_gas_price_yesterday"] * 100.0
-          gas_price_change_text = "Gas prices changed [[#{helper.number_to_percentage(gas_price_change, precision: 1)}]] since yesterday."
-        else
-          gas_price_change_text = ""
-        end
-
+        Articles::Creator.call(@user, article_params)
+      else
+        article_params = generate_article_params_json(!update_to_static)
         # update article text with static previews
-        existing.main_image = screenshot
-        existing.body_markdown = "#{gas_price_change_text}
-[#{dune_url}](#{dune_url})
-![#{dune_url}](#{screenshot})
-
-Gas prices for the past 24hrs
-Eth Transfer: #{helper.number_to_currency(prices['cost_of_eth_transfer'])}
-ERC20 Transfer: #{helper.number_to_currency(prices['cost_of_erc20_transfer'])}
-ERC20 Approval: #{helper.number_to_currency(prices['cost_of_erc20_approval'])}
-Uniswap trade: #{helper.number_to_currency(prices['cost_of_uniswap_trade'])}
-Compound Deposit: #{helper.number_to_currency(prices['cost_of_compound_erc20_deposit'])}
-
-[#{dune_url2}](#{dune_url2})
-![#{dune_url2}](#{screenshot2})"
+        existing.main_image = article_params[:main_image]
+        existing.body_markdown = article_params[:body_markdown]
 
         existing.save
       end

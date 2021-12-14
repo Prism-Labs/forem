@@ -140,3 +140,15 @@ push_notifications_cleanup:
   description: "Cleans up Push Notifications from Redis (runs every 8 hours on the 20th minute after the hour)"
   cron: "20 */8 * * *"
   class: "PushNotifications::CleanupWorker"
+dune_autopost_dynamic:
+  description: "Create a new post with dynamic links (runs hourly, trying to create a new post if not exists)"
+  cron: "0 * * * *"
+  class: "Everlist::DuneAutopostWorker"
+  args:
+    - false
+dune_autopost_static:
+  description: "Update the existing post to become a static post (runs just before midnight)"
+  cron: "30 23 * * *"
+  class: "Everlist::DuneAutopostWorker"
+  args:
+    - true
