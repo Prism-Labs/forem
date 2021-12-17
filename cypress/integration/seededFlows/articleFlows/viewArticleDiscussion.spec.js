@@ -23,10 +23,12 @@ describe('View article discussion', () => {
 
       // Confirm the follow button has been updated
       cy.get('@userFollowButton').should('have.text', 'Following');
+      cy.get('@userFollowButton').should('have.attr', 'aria-pressed', 'true');
 
       // Repeat and check the button changes back to 'Follow'
       cy.get('@userFollowButton').click();
       cy.get('@userFollowButton').should('have.text', 'Follow');
+      cy.get('@userFollowButton').should('have.attr', 'aria-pressed', 'false');
     });
   });
 
@@ -47,5 +49,18 @@ describe('View article discussion', () => {
     cy.findAllByTestId('profile-preview-card')
       .first()
       .findByRole('button', { name: 'Edit profile' });
+  });
+
+  it('does not see hidden comments on an article not authored by them', () => {
+    cy.visit('/admin_mcadmin/test-article-with-hidden-comments-slug');
+    cy.findByText(/Some comments have been hidden by the post's author/).should(
+      'be.visible',
+    );
+    cy.findByText(/I am hidden/).should('not.be.visible');
+  });
+
+  it('shows unhidden children of hidden comments', () => {
+    cy.visit('/admin_mcadmin/test-article-with-hidden-comments-slug');
+    cy.findByText(/Child of a hidden comment/).should('be.visible');
   });
 });

@@ -1,3 +1,6 @@
+#  @note When we destroy the related user, it's using dependent:
+#        :delete for the relationship.  That means no before/after
+#        destroy callbacks will be called on this object.
 class Profile < ApplicationRecord
   belongs_to :user
 
@@ -40,7 +43,7 @@ class Profile < ApplicationRecord
     super unless field
 
     self.class.instance_eval do
-      store_attribute :data, field.attribute_name.to_sym, field.type
+      store_attribute :data, field.attribute_name.to_sym, :string
     end
     public_send(method_name, *args, **kwargs, &block)
   end

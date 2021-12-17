@@ -1,4 +1,6 @@
 class Tag < ActsAsTaggableOn::Tag
+  self.ignored_columns = %w[mod_chat_channel_id].freeze
+
   attr_accessor :points, :tag_moderator_id, :remove_moderator_id
 
   acts_as_followable
@@ -12,7 +14,6 @@ class Tag < ActsAsTaggableOn::Tag
   HEX_COLOR_REGEXP = /\A#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})\z/
 
   belongs_to :badge, optional: true
-  belongs_to :mod_chat_channel, class_name: "ChatChannel", optional: true
 
   has_many :articles, through: :taggings, source: :taggable, source_type: "Article"
 
@@ -41,6 +42,7 @@ class Tag < ActsAsTaggableOn::Tag
                   using: { tsearch: { prefix: true } }
 
   scope :eager_load_serialized_data, -> {}
+  scope :supported, -> { where(supported: true) }
 
   # possible social previews templates for articles with a particular tag
   def self.social_preview_templates

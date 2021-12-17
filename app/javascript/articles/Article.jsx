@@ -132,6 +132,7 @@ export const Article = ({
                   <CommentsCount
                     count={article.comments_count}
                     articlePath={article.path}
+                    articleTitle={article.title}
                   />
                 </div>
               )}
