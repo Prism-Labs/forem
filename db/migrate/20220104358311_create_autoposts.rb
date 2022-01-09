@@ -1,6 +1,6 @@
-class CreateAutopostTemplates < ActiveRecord::Migration[6.1]
+class CreateAutoposts < ActiveRecord::Migration[6.1]
   def change
-    create_table :autopost_templates do |t|
+    create_table :autoposts do |t|
       t.boolean :archived
       t.text :body_markdown
       t.string :canonical_url
@@ -39,14 +39,14 @@ class CreateAutopostTemplates < ActiveRecord::Migration[6.1]
       t.timestamps null: false
     end
 
-    add_foreign_key :autopost_templates, :users, on_delete: :cascade, validate: false
-    add_foreign_key :autopost_templates, :organizations, on_delete: :nullify, validate: false
-    add_foreign_key :autopost_templates, :collections, on_delete: :nullify, validate: false
+    add_foreign_key :autoposts, :users, on_delete: :cascade, validate: false
+    add_foreign_key :autoposts, :organizations, on_delete: :nullify, validate: false
+    add_foreign_key :autoposts, :collections, on_delete: :nullify, validate: false
 
-    add_index :autopost_templates, :cached_tag_list, using: :gin, opclass: :gin_trgm_ops
-    add_index("autopost_templates", "user_id")
-    add_index("autopost_templates", "canonical_url", unique: true)
-    add_index("autopost_templates", "collection_id")
-    add_index("autopost_templates", "slug")
+    add_index :autoposts, :cached_tag_list, using: :gin, opclass: :gin_trgm_ops
+    add_index("autoposts", "user_id")
+    add_index("autoposts", "canonical_url", unique: true)
+    add_index("autoposts", "collection_id")
+    add_index("autoposts", "slug")
   end
 end
