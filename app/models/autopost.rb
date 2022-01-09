@@ -1,4 +1,4 @@
-class AutopostTemplate < ApplicationRecord
+class Autopost < ApplicationRecord
   include CloudinaryHelper
   include ActionView::Helpers
   include Storext.model
