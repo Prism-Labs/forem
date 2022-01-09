@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_12_09_225729) do
+ActiveRecord::Schema.define(version: 2022_01_04_358315) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
@@ -83,8 +83,7 @@ ActiveRecord::Schema.define(version: 2021_12_09_225729) do
     t.boolean "any_comments_hidden", default: false
     t.boolean "approved", default: false
     t.boolean "archived", default: false
-    t.integer "autopost_id"
-    t.bigint "autoposts_id"
+    t.bigint "autopost_id"
     t.text "body_html"
     t.text "body_markdown"
     t.text "cached_organization"
@@ -155,7 +154,6 @@ ActiveRecord::Schema.define(version: 2021_12_09_225729) do
     t.string "video_state"
     t.string "video_thumbnail_url"
     t.index "user_id, title, digest(body_markdown, 'sha512'::text)", name: "index_articles_on_user_id_and_title_and_digest_body_markdown", unique: true
-    t.index ["autoposts_id"], name: "index_articles_on_autoposts_id"
     t.index ["cached_tag_list"], name: "index_articles_on_cached_tag_list", opclass: :gin_trgm_ops, using: :gin
     t.index ["canonical_url"], name: "index_articles_on_canonical_url", unique: true, where: "(published IS TRUE)"
     t.index ["collection_id"], name: "index_articles_on_collection_id"
@@ -184,6 +182,50 @@ ActiveRecord::Schema.define(version: 2021_12_09_225729) do
     t.bigint "user_id"
     t.index ["data"], name: "index_audit_logs_on_data", using: :gin
     t.index ["user_id"], name: "index_audit_logs_on_user_id"
+  end
+
+  create_table "autoposts", force: :cascade do |t|
+    t.boolean "archived"
+    t.text "body_markdown"
+    t.string "cached_organization"
+    t.string "cached_tag_list"
+    t.string "cached_user"
+    t.string "cached_user_name"
+    t.string "cached_user_username"
+    t.string "canonical_url"
+    t.integer "collection_id"
+    t.datetime "created_at", precision: 6, null: false
+    t.string "description"
+    t.datetime "edited_at"
+    t.float "experience_level_rating"
+    t.float "experience_level_rating_distribution"
+    t.datetime "last_experience_level_rating_at"
+    t.string "main_image"
+    t.string "main_image_background_hex_color"
+    t.integer "organization_id"
+    t.datetime "originally_published_at"
+    t.string "password"
+    t.string "path"
+    t.text "processed_html"
+    t.boolean "published"
+    t.datetime "published_at"
+    t.text "slug"
+    t.string "social_image"
+    t.string "title"
+    t.datetime "updated_at", precision: 6, null: false
+    t.integer "user_id"
+    t.string "video"
+    t.string "video_closed_caption_track_url"
+    t.string "video_code"
+    t.float "video_duration_in_seconds"
+    t.string "video_source_url"
+    t.string "video_state"
+    t.string "video_thumbnail_url"
+    t.index ["cached_tag_list"], name: "index_autoposts_on_cached_tag_list", opclass: :gin_trgm_ops, using: :gin
+    t.index ["canonical_url"], name: "index_autoposts_on_canonical_url", unique: true
+    t.index ["collection_id"], name: "index_autoposts_on_collection_id"
+    t.index ["slug"], name: "index_autoposts_on_slug"
+    t.index ["user_id"], name: "index_autoposts_on_user_id"
   end
 
   create_table "badge_achievements", force: :cascade do |t|
@@ -1419,10 +1461,14 @@ ActiveRecord::Schema.define(version: 2021_12_09_225729) do
   add_foreign_key "ahoy_messages", "users", on_delete: :cascade
   add_foreign_key "ahoy_visits", "users", on_delete: :cascade
   add_foreign_key "api_secrets", "users", on_delete: :cascade
+  add_foreign_key "articles", "autoposts", on_delete: :nullify
   add_foreign_key "articles", "collections", on_delete: :nullify
   add_foreign_key "articles", "organizations", on_delete: :nullify
   add_foreign_key "articles", "users", on_delete: :cascade
   add_foreign_key "audit_logs", "users"
+  add_foreign_key "autoposts", "collections", on_delete: :nullify
+  add_foreign_key "autoposts", "organizations", on_delete: :nullify
+  add_foreign_key "autoposts", "users", on_delete: :cascade
   add_foreign_key "badge_achievements", "badges"
   add_foreign_key "badge_achievements", "users"
   add_foreign_key "badge_achievements", "users", column: "rewarder_id", on_delete: :nullify
