@@ -340,6 +340,8 @@ Rails.application.routes.draw do
     get "/new", to: "articles#new"
     get "/new/:template", to: "articles#new"
 
+    get "/new-autopost", to: "autoposts#new", as: :new_autopost
+
     get "/pod", to: "podcast_episodes#index"
     get "/podcasts", to: redirect("pod")
     get "/readinglist", to: "reading_list_items#index"

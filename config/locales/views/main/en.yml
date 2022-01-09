@@ -73,5 +73,6 @@ en:
           rails: Ruby on Rails
       home: Home
       create_post: Create Post
+      create_autopost: Create Autopost
       signout: Sign Out
       signup: Sign In/Up
