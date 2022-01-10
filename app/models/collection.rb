@@ -1,5 +1,6 @@
 class Collection < ApplicationRecord
   has_many :articles, dependent: :nullify
+  has_many :autoposts, dependent: :nullify
 
   belongs_to :user
   belongs_to :organization, optional: true

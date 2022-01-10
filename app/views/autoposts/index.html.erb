@@ -32,7 +32,7 @@
       data-feed="<%= params[:timeframe] || "base-feed" %>"
       data-articles-since="<%= Timeframe.datetime_iso8601(params[:timeframe]) %>">
 
-    <%= render "articles/sidebar" %>
+    <%= render "autoposts/sidebar" %>
 
     <%# BEGIN Feed menu bar %>
     <main class="articles-list crayons-layout__content" id="main-content" data-follow-button-container="true">
@@ -98,7 +98,7 @@
       </div>
     </main>
 
-    <%= render "articles/sidebar_additional" %>
+    <%= render "autoposts/sidebar_additional" %>
   </div>
 
   <%= javascript_packs_with_chunks_tag "storiesList", "followButtons", "feedPreviewCards", defer: true %>

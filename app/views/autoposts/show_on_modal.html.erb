@@ -1,4 +1,4 @@
-<%= render "shared/payment_pointer", user: @article.user %>
+<%= render "shared/payment_pointer", user: @autopost.user %>
 
 <style>
   .html-variant-wrapper { display: none}
@@ -13,39 +13,39 @@
 
 <div class="crayons-layout crayons-layout--3-cols crayons-layout--article">
   <aside class="crayons-layout__sidebar-left" aria-label="Article actions">
-    <%= render "articles/actions" %>
+    <%= render "autoposts/actions" %>
   </aside>
 
   <main id="main-content" class="crayons-layout__content grid gap-4">
     <div class="article-wrapper">
-      <% if !@article.published %>
+      <% if !@autopost.published %>
         <div class="crayons-notice crayons-notice--danger mb-4" aria-live="polite">
           <strong>Unpublished Post.</strong> This URL is public but secret, so share at your own discretion.
           <% if user_signed_in? %>
-            <a id="author-click-to-edit" href="<%= @article.path %>/edit" class="fw-bold" display="none">Click to edit</a>
+            <a id="author-click-to-edit" href="<%= @autopost.path %>/edit" class="fw-bold" display="none">Click to edit</a>
           <% end %>
         </div>
       <% end %>
 
-      <% if @article.video_state == "PROGRESSING" %>
+      <% if @autopost.video_state == "PROGRESSING" %>
         <div class="crayons-notice crayons-notice--warning mb-4" aria-live="polite">⏳ Video Transcoding In Progress ⏳</div>
       <% end %>
 
       <article class="crayons-card crayons-article mb-4"
         id="article-show-container"
-        data-article-id="<%= @article.id %>"
-        data-author-id="<%= @article.user_id %>"
-        data-path="<%= @article.path %>"
-        data-published="<%= @article.published? %>"
+        data-article-id="<%= @autopost.id %>"
+        data-author-id="<%= @autopost.user_id %>"
+        data-path="<%= @autopost.path %>"
+        data-published="<%= @autopost.published? %>"
         data-pin-path="<%= stories_feed_pinned_article_path %>"
         data-pinned-article-id="<%= @pinned_article_id %>"
-        <%= @article.pinned? ? "data-pinned" : " " %>>
+        <%= @autopost.pinned? ? "data-pinned" : " " %>>
         <header class="crayons-article__header" id="main-title">
-          <% if @article.video.present? %>
-            <%= render "articles/video_player", meta_tags: true, article: @article %>
-          <% elsif @article.main_image.present? %>
+          <% if @autopost.video.present? %>
+            <%= render "autoposts/video_player", meta_tags: true, autopost: @autopost %>
+          <% elsif @autopost.main_image.present? %>
             <div class="crayons-article__cover">
-              <img src="<%= cloud_cover_url(@article.main_image) %>" width="1000" height="420" style="background-color:<%= @article.main_image_background_hex_color %>;" class="crayons-article__cover__image" alt="Cover image for <%= @article.title %>">
+              <img src="<%= cloud_cover_url(@autopost.main_image) %>" width="1000" height="420" style="background-color:<%= @autopost.main_image_background_hex_color %>;" class="crayons-article__cover__image" alt="Cover image for <%= @autopost.title %>">
             </div>
           <% end %>
 
@@ -58,16 +58,16 @@
                 <%= @organization.name %>
               </a>
             <% end %>
-            <h1 class="fs-3xl m:fs-4xl l:fs-5xl fw-bold s:fw-heavy lh-tight mb-4 <%= @article.title_length_classification %>">
-              <% if @article.search_optimized_title_preamble.present? && !user_signed_in? %>
-                <span class="fs-xl color-base-70 block"><%= @article.search_optimized_title_preamble %></span>
+            <h1 class="fs-3xl m:fs-4xl l:fs-5xl fw-bold s:fw-heavy lh-tight mb-4 <%= @autopost.title_length_classification %>">
+              <% if @autopost.search_optimized_title_preamble.present? && !user_signed_in? %>
+                <span class="fs-xl color-base-70 block"><%= @autopost.search_optimized_title_preamble %></span>
               <% end %>
-              <%= @article.title %>
+              <%= @autopost.title %>
             </h1>
 
-            <% cache("main-article-tags-#{@article.cached_tag_list}", expires_in: 30.hours) do %>
+            <% cache("main-article-tags-#{@autopost.cached_tag_list}", expires_in: 30.hours) do %>
               <div class="mb-4 spec__tags">
-                <% @article.cached_tag_list_array.each do |tag| %>
+                <% @autopost.cached_tag_list_array.each do |tag| %>
                   <% tag_hash = tag_colors(tag) %>
                   <% styles = "" %>
                   <% if tag_hash[:background] %>
@@ -92,28 +92,28 @@
               </div>
 
               <span class="fs-s mb-4 s:mb-0">
-                <% if @article.published_timestamp.present? %>
-                  <%= local_date(@article.published_timestamp, show_year: @article.displayable_published_at.year != Time.current.year) %>
+                <% if @autopost.published_timestamp.present? %>
+                  <%= local_date(@autopost.published_timestamp, show_year: @autopost.displayable_published_at.year != Time.current.year) %>
                 <% end %>
-                <% if @article.co_author_ids.present? %>
-                  <em>with <%= @article.co_author_name_and_path.html_safe %></em>
+                <% if @autopost.co_author_ids.present? %>
+                  <em>with <%= @autopost.co_author_name_and_path.html_safe %></em>
                 <% end %>
 
-                <% if should_show_crossposted_on?(@article) %>
+                <% if should_show_crossposted_on?(@autopost) %>
                   <em>
                     Originally published at
-                    <a href="<%= @article.canonical_url || @article.feed_source_url %>" style="color:#1395b8"><%= get_host_without_www(@article.canonical_url || @article.feed_source_url) %></a>
-                    <% if @article.crossposted_at %>
+                    <a href="<%= @autopost.canonical_url || @autopost.feed_source_url %>" style="color:#1395b8"><%= get_host_without_www(@autopost.canonical_url || @autopost.feed_source_url) %></a>
+                    <% if @autopost.crossposted_at %>
                       on
-                      <%= local_date(@article.originally_published_at || @article.published_at, show_year: (@article.originally_published_at || @article.published_at).year != Time.current.year) %>
+                      <%= local_date(@autopost.originally_published_at || @autopost.published_at, show_year: (@autopost.originally_published_at || @autopost.published_at).year != Time.current.year) %>
                     <% end %>
                   </em>
                 <% end %>
-                <% if should_show_updated_on?(@article) %>
-                  ・<em>Updated on <%= local_date(@article.edited_at, show_year: @article.edited_at.year != Time.current.year) %></em>
+                <% if should_show_updated_on?(@autopost) %>
+                  ・<em>Updated on <%= local_date(@autopost.edited_at, show_year: @autopost.edited_at.year != Time.current.year) %></em>
                 <% end %>
 
-                <span class="mr-4">・<%= @article.reading_time < 1 ? 1 : @article.reading_time %> min read</span>
+                <span class="mr-4">・<%= @autopost.reading_time < 1 ? 1 : @autopost.reading_time %> min read</span>
               </span>
               <span id="action-space" class="mb-4 s:mb-0"></span>
             </div>
@@ -122,51 +122,51 @@
 
         <div class="crayons-article__main">
           <% if @collection %>
-            <%= render "articles/collection",
-                       rendered_article: @article,
+            <%= render "autoposts/collection",
+                       rendered_autopost: @autopost,
                        collection: @collection,
                        articles: @collection_articles %>
           <% end %>
 
-          <div class="crayons-article__body text-styles spec__body" data-article-id="<%= @article.id %>" id="article-body">
-            <%= @article.processed_html.html_safe %>
+          <div class="crayons-article__body text-styles spec__body" data-article-id="<%= @autopost.id %>" id="article-body">
+            <%= @autopost.processed_html.html_safe %>
           </div>
 
-          <% if @article.long_markdown? && @collection %>
-            <%= render "articles/collection",
-                       rendered_article: @article,
+          <% if @autopost.long_markdown? && @collection %>
+            <%= render "autoposts/collection",
+                       rendered_autopost: @autopost,
                        collection: @collection,
                        articles: @collection_articles %>
           <% end %>
         </div>
-        <%= render "articles/full_comment_area" %>
+        <%= render "autoposts/full_comment_area" %>
 
       </article>
 
-      <% cache("article-bottom-content-#{@article.id}-#{user_signed_in?}-#{(@organization || @user).latest_article_updated_at}", expires_in: 18.hours) do %>
-        <% suggested_articles = Articles::Suggest.call(@article, max: 4) %>
-        <%= render "articles/bottom_content", articles: suggested_articles %>
+      <% cache("article-bottom-content-#{@autopost.id}-#{user_signed_in?}-#{(@organization || @user).latest_article_updated_at}", expires_in: 18.hours) do %>
+        <% suggested_articles = Articles::Suggest.call(@autopost, max: 4) %>
+        <%= render "autoposts/bottom_content", articles: suggested_articles %>
       <% end %>
     </div>
   </main>
 
   <aside class="crayons-layout__sidebar-right" aria-label="Author details">
-    <% stick_nav_cache_key = "sticky-sidebar-#{@article.id}-#{(@organization || @user).profile_updated_at}-#{(@organization || @user).latest_article_updated_at}" %>
+    <% stick_nav_cache_key = "sticky-sidebar-#{@autopost.id}-#{(@organization || @user).profile_updated_at}-#{(@organization || @user).latest_article_updated_at}" %>
     <% cache(stick_nav_cache_key, expires_in: 50.hours) do %>
-      <%= render "articles/sticky_nav" %>
+      <%= render "autoposts/sticky_nav" %>
     <% end %>
   </aside>
 </div>
 
-<% cache("specific-article-extra-scripts-#{@article.id}-#{@article.updated_at}", expires_in: 24.hours) do %>
-  <% if has_vid?(@article) %>
-    <%= render "articles/fitvids" %>
+<% cache("specific-article-extra-scripts-#{@autopost.id}-#{@autopost.updated_at}", expires_in: 24.hours) do %>
+  <% if has_vid?(@autopost) %>
+    <%= render "autoposts/fitvids" %>
   <% end %>
-  <% if @article.processed_html.include?('class="twitter-tweet"') ||
-       @article.processed_html.include?("ltag_twitter_timeline-liquid-tag") %>
+  <% if @autopost.processed_html.include?('class="twitter-tweet"') ||
+       @autopost.processed_html.include?("ltag_twitter_timeline-liquid-tag") %>
     <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
   <% end %>
-  <% if @article.processed_html.include? "instagram-media" %>
+  <% if @autopost.processed_html.include? "instagram-media" %>
     <script async defer src="//platform.instagram.com/en_US/embeds.js"></script>
   <% end %>
 <% end %>

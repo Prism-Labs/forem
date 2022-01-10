@@ -1,11 +1,11 @@
-<% @actor = @article.organization || @article.user %>
+<% @actor = @autopost.organization || @autopost.user %>
 <div class="crayons-article-sticky grid gap-4 break-word" id="article-show-primary-sticky-nav">
   <div class="crayons-card crayons-card--secondary branded-7 p-4 pt-0 gap-4 grid" style="border-top-color: <%= Color::CompareHex.new([user_colors(@actor)[:bg], user_colors(@actor)[:text]]).brightness(0.88) %>;">
     <%= render "shared/profile_card_content", actor: @actor, context: "sidebar" %>
   </div>
 
-  <% cache("article-sticky-nav-articles-#{@article.id}-#{@actor.latest_article_updated_at}", expires_in: 48.hours) do %>
-    <% if (user_stickies = Articles::GetUserStickies.call(@article, @actor)).present? %>
+  <% cache("article-sticky-nav-articles-#{@autopost.id}-#{@actor.latest_article_updated_at}", expires_in: 48.hours) do %>
+    <% if (user_stickies = Articles::GetUserStickies.call(@autopost, @actor)).present? %>
       <div class="crayons-card crayons-card--secondary">
         <header class="crayons-card__header">
           <h3 class="crayons-subtitle-2">
@@ -14,10 +14,10 @@
         </header>
         <div>
           <% user_stickies.each_with_index do |article, index| %>
-            <a class="crayons-link crayons-link--contentful" href="<%= article.path %>">
-              <%= article.title %>
+            <a class="crayons-link crayons-link--contentful" href="<%= autopost.path %>">
+              <%= autopost.title %>
               <div class="crayons-link__secondary -ml-1">
-                <% article.decorate.cached_tag_list_array.each do |tag| %>
+                <% autopost.decorate.cached_tag_list_array.each do |tag| %>
                   <span class="mr-1"><span class="opacity-50">#</span><%= tag %></span>
                 <% end %>
               </div>
@@ -25,7 +25,7 @@
           <% end %>
         </div>
       </div>
-    <% elsif (sticky_articles = Articles::SuggestStickies.call(@article)).present? %>
+    <% elsif (sticky_articles = Articles::SuggestStickies.call(@autopost)).present? %>
       <div class="crayons-card crayons-card--secondary">
         <header class="crayons-card__header">
           <h3 class="crayons-subtitle-2">
@@ -35,14 +35,14 @@
         </header>
         <div>
           <% sticky_articles.each_with_index do |article, index| %>
-            <a class="crayons-link crayons-link--contentful flex" href="<%= article.path %>">
+            <a class="crayons-link crayons-link--contentful flex" href="<%= autopost.path %>">
               <span class="crayons-avatar mr-2 shrink-0">
-                <img src="<%= Images::Profile.call(article.cached_user.profile_image_url, length: 90) %>" class="crayons-avatar__image" loading="lazy" alt="<%= article.cached_user.name %> profile image">
+                <img src="<%= Images::Profile.call(autopost.cached_user.profile_image_url, length: 90) %>" class="crayons-avatar__image" loading="lazy" alt="<%= autopost.cached_user.name %> profile image">
               </span>
               <div>
-                <%= article.title %>
+                <%= autopost.title %>
                 <div class="crayons-link__secondary -ml-1">
-                  <% article.decorate.cached_tag_list_array.each do |tag| %>
+                  <% autopost.decorate.cached_tag_list_array.each do |tag| %>
                     <span class="mr-1"><span class="opacity-50">#</span><%= tag %></span>
                   <% end %>
                 </div>

@@ -1,44 +1,44 @@
 <% if article %>
 <div class='ltag__link'>
-  <% if article.video && article.cloudinary_video_url %>
-  <a href='<%= article.path %>' class="video-image" style="background-image: url(<%= article.cloudinary_video_url %>)">
+  <% if autopost.video && autopost.cloudinary_video_url %>
+  <a href='<%= autopost.path %>' class="video-image" style="background-image: url(<%= autopost.cloudinary_video_url %>)">
     <span class="video-timestamp">
       <img src="<%= asset_path("video-camera.svg") %>" alt="video camera">
-      <%= article.video_duration_in_minutes %></span>
+      <%= autopost.video_duration_in_minutes %></span>
   </a>
   <% end %>
-  <% if article.organization %>
-  <a href='<%= article.organization.path %>' class='ltag__link__link'>
+  <% if autopost.organization %>
+  <a href='<%= autopost.organization.path %>' class='ltag__link__link'>
     <div class='ltag__link__org__pic'>
-      <img src='<%= Images::Profile.call(article.organization.profile_image_url, length: 150) %>' alt='<%= article.organization.name.to_s %>'>
+      <img src='<%= Images::Profile.call(autopost.organization.profile_image_url, length: 150) %>' alt='<%= autopost.organization.name.to_s %>'>
       <div class='ltag__link__user__pic'>
-        <img src='<%= Images::Profile.call(article.user.profile_image_url, length: 150) %>' alt=''>
+        <img src='<%= Images::Profile.call(autopost.user.profile_image_url, length: 150) %>' alt=''>
       </div>
     </div>
   </a>
-  <a href='<%= article.path %>' class='ltag__link__link'>
+  <a href='<%= autopost.path %>' class='ltag__link__link'>
     <div class='ltag__link__content'>
       <h2><%= title %></h2>
-      <h3><%= article.user.name %><%= t("views.articles.for_org_html", org: article.organization.name, start: "", end: "") %> ・ <%= article.readable_publish_date %> ・ <%= t("views.articles.reading_time", count: article.reading_time < 2 ? 1 : article.reading_time) %></h3>
+      <h3><%= autopost.user.name %><%= t("views.articles.for_org_html", org: autopost.organization.name, start: "", end: "") %> ・ <%= autopost.readable_publish_date %> ・ <%= t("views.articles.reading_time", count: autopost.reading_time < 2 ? 1 : autopost.reading_time) %></h3>
       <div class='ltag__link__taglist'>
-      <% article.tag_list.each do |t| %>
+      <% autopost.tag_list.each do |t| %>
         <span class='ltag__link__tag'>#<%= t %></span>
       <% end %>
       </div>
     </div>
   </a>
   <% else %>
-  <a href='<%= article.user.path %>' class='ltag__link__link'>
+  <a href='<%= autopost.user.path %>' class='ltag__link__link'>
     <div class='ltag__link__pic'>
-      <img src='<%= Images::Profile.call(article.user.profile_image_url, length: 150) %>' alt='<%= article.user.username.to_s %>'>
+      <img src='<%= Images::Profile.call(autopost.user.profile_image_url, length: 150) %>' alt='<%= autopost.user.username.to_s %>'>
     </div>
   </a>
-  <a href='<%= article.path %>' class='ltag__link__link'>
+  <a href='<%= autopost.path %>' class='ltag__link__link'>
     <div class='ltag__link__content'>
       <h2><%= title %></h2>
-      <h3><%= article.user.name %> ・ <%= article.readable_publish_date %> ・ <%= t("views.articles.reading_time", count: article.reading_time < 2 ? 1 : article.reading_time) %></h3>
+      <h3><%= autopost.user.name %> ・ <%= autopost.readable_publish_date %> ・ <%= t("views.articles.reading_time", count: autopost.reading_time < 2 ? 1 : autopost.reading_time) %></h3>
       <div class='ltag__link__taglist'>
-      <% article.tag_list.each do |t| %>
+      <% autopost.tag_list.each do |t| %>
         <span class='ltag__link__tag'>#<%= t %></span>
       <% end %>
       </div>

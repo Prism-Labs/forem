@@ -19,13 +19,13 @@ xml.rss version: "2.0" do
     end
     articles.each do |article|
       xml.item do
-        xml.title article.title
-        xml.author(user.instance_of?(User) ? user.name : article.user.name)
-        xml.pubDate article.published_at.to_s(:rfc822) if article.published_at
-        xml.link app_url(article.path)
-        xml.guid app_url(article.path)
-        xml.description sanitize(article.plain_html, tags: allowed_tags, attributes: allowed_attributes)
-        article.tag_list.each do |tag_name|
+        xml.title autopost.title
+        xml.author(user.instance_of?(User) ? user.name : autopost.user.name)
+        xml.pubDate autopost.published_at.to_s(:rfc822) if autopost.published_at
+        xml.link app_url(autopost.path)
+        xml.guid app_url(autopost.path)
+        xml.description sanitize(autopost.plain_html, tags: allowed_tags, attributes: allowed_attributes)
+        autopost.tag_list.each do |tag_name|
           xml.category tag_name
         end
       end

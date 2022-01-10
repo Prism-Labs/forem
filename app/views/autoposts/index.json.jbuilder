@@ -1,4 +1,4 @@
-json.array!(@articles) do |article|
+json.array!(@autoposts) do |article|
   json.extract!(article, :id, :title, :body_html)
-  json.url article_url(article, format: :json)
+  json.url autopost_url(article, format: :json)
 end

@@ -7,6 +7,7 @@ en:
       heading:
         new: New Post
       create: Create Post
+      create_autopost: Create Autopost
       close:
         icon: Close
         title: Close the editor

@@ -31,7 +31,7 @@ class Autopost < ApplicationRecord
   UNIQUE_URL_ERROR = "has already been taken. " \
                      "Email #{ForemInstance.email} for further details.".freeze
 
-  has_one :discussion_lock, dependent: :delete
+  has_many :articles, dependent: :nullify
 
   validates :body_markdown, bytesize: { maximum: 800.kilobytes, too_long: "is too long." }
   validates :body_markdown, length: { minimum: 0, allow_nil: false }

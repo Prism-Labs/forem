@@ -2,7 +2,7 @@ class AutopostsController < ApplicationController
   include ApplicationHelper
 
   before_action :authenticate_user!, except: %i[feed new]
-  before_action :set_article, only: %i[edit manage update destroy stats admin_unpublish]
+  before_action :set_autopost, only: %i[edit manage update destroy stats admin_unpublish]
   before_action :raise_suspended, only: %i[new create update]
   before_action :set_cache_control_headers, only: %i[feed]
   after_action :verify_authorized
@@ -10,22 +10,22 @@ class AutopostsController < ApplicationController
   def feed
     skip_authorization
 
-    @articles = Autopost.all.order(published_at: :desc).page(params[:page].to_i).per(12)
-    @articles = if params[:username]
+    @autoposts = Autopost.all.order(published_at: :desc).page(params[:page].to_i).per(12)
+    @autoposts = if params[:username]
                   handle_user_or_organization_feed
                 elsif params[:tag]
                   handle_tag_feed
                 else
-                  @articles
+                  @autoposts
                     .includes(:user)
                 end
 
-    not_found unless @articles&.any?
+    not_found unless @autoposts&.any?
 
     set_cache_control_headers(10.minutes.to_i, stale_while_revalidate: 30, stale_if_error: 1.day.to_i)
 
     render layout: false, locals: {
-      articles: @articles,
+      autoposts: @autoposts,
       user: @user,
       tag: @tag,
       allowed_tags: MarkdownProcessor::AllowedTags::FEED,
@@ -36,7 +36,7 @@ class AutopostsController < ApplicationController
   def new
     base_editor_assignments
 
-    @article, needs_authorization = Autoposts::Builder.call(@user, @tag, @prefill)
+    @autopost, needs_authorization = Autoposts::Builder.call(@user, @tag, @prefill)
 
     if needs_authorization
       authorize(Autopost)
@@ -47,21 +47,19 @@ class AutopostsController < ApplicationController
   end
 
   def edit
-    authorize @article
+    authorize @autopost
 
-    @version = @article.has_frontmatter? ? "v1" : "v2"
-    @user = @article.user
+    @version = @autopost.has_frontmatter? ? "v1" : "v2"
+    @user = @autopost.user
     @organizations = @user&.organizations
     @user_approved_liquid_tags = Users::ApprovedLiquidTags.call(@user)
   end
 
   def manage
-    authorize @article
+    authorize @autopost
 
-    @article = @article.decorate
-    @discussion_lock = @article.discussion_lock
-    @user = @article.user
-    @rating_vote = RatingVote.where(article_id: @article.id, user_id: @user.id).first
+    @autopost = @autopost.decorate
+    @user = @autopost.user
     @organizations = @user&.organizations
     # TODO: fix this for multi orgs
     @org_members = @organization.users.pluck(:name, :id) if @organization
@@ -71,18 +69,18 @@ class AutopostsController < ApplicationController
     authorize Autopost
 
     begin
-      fixed_body_markdown = MarkdownProcessor::Fixer::FixForPreview.call(params[:article_body])
+      fixed_body_markdown = MarkdownProcessor::Fixer::FixForPreview.call(params[:autopost_body])
       parsed = FrontMatterParser::Parser.new(:md).call(fixed_body_markdown)
       parsed_markdown = MarkdownProcessor::Parser.new(parsed.content, source: Autopost.new, user: current_user)
       processed_html = parsed_markdown.finalize
     rescue StandardError => e
-      @article = Autopost.new(body_markdown: params[:article_body])
-      @article.errors.add(:base, ErrorMessages::Clean.call(e.message))
+      @autopost = Autopost.new(body_markdown: params[:autopost_body])
+      @autopost.errors.add(:base, ErrorMessages::Clean.call(e.message))
     end
 
     respond_to do |format|
-      if @article
-        format.json { render json: @article.errors, status: :unprocessable_entity }
+      if @autopost
+        format.json { render json: @autopost.errors, status: :unprocessable_entity }
       else
         format.json do
           render json: {
@@ -100,34 +98,34 @@ class AutopostsController < ApplicationController
     authorize Autopost
 
     @user = current_user
-    article = Autoposts::Creator.call(@user, article_params_json)
+    autopost = Autoposts::Creator.call(@user, autopost_params_json)
 
-    render json: if article.persisted?
-                   { id: article.id, current_state_path: article.decorate.current_state_path }.to_json
+    render json: if autopost.persisted?
+                   { id: autopost.id, current_state_path: autopost.decorate.current_state_path }.to_json
                  else
-                   article.errors.to_json
+                   autopost.errors.to_json
                  end
   end
 
   def update
-    authorize @article
-    @user = @article.user || current_user
+    authorize @autopost
+    @user = @autopost.user || current_user
 
-    updated = Autoposts::Updater.call(@user, @article, article_params_json)
+    updated = Autoposts::Updater.call(@user, @autopost, autopost_params_json)
 
     respond_to do |format|
       format.html do
         # TODO: JSON should probably not be returned in the format.html section
-        if article_params_json[:archived] && @article.archived # just to get archived working
-          render json: @article.to_json(only: [:id], methods: [:current_state_path])
+        if autopost_params_json[:archived] && @autopost.archived # just to get archived working
+          render json: @autopost.to_json(only: [:id], methods: [:current_state_path])
           return
         end
         if params[:destination]
           redirect_to(URI.parse(params[:destination]).path)
           return
         end
-        if params[:article][:video_thumbnail_url]
-          redirect_to("#{@article.path}/edit")
+        if params[:autopost][:video_thumbnail_url]
+          redirect_to("#{@autopost.path}/edit")
           return
         end
         render json: { status: 200 }
@@ -135,23 +133,23 @@ class AutopostsController < ApplicationController
 
       format.json do
         render json: if updated.success
-                       @article.to_json(only: [:id], methods: [:current_state_path])
+                       @autopost.to_json(only: [:id], methods: [:current_state_path])
                      else
-                       @article.errors.to_json
+                       @autopost.errors.to_json
                      end
       end
     end
   end
 
   def delete_confirm
-    @article = current_user.articles.find_by(slug: params[:slug])
-    not_found unless @article
-    authorize @article
+    @autopost = current_user.autoposts.find_by(slug: params[:slug])
+    not_found unless @autopost
+    authorize @autopost
   end
 
   def destroy
-    authorize @article
-    Autoposts::Destroyer.call(@article)
+    authorize @autopost
+    Autoposts::Destroyer.call(@autopost)
     respond_to do |format|
       format.html { redirect_to "/dashboard", notice: "Autopost was successfully deleted." }
       format.json { head :no_content }
@@ -159,41 +157,23 @@ class AutopostsController < ApplicationController
   end
 
   def stats
-    authorize @article
-    @organization_id = @article.organization_id
+    authorize @autopost
+    @organization_id = @autopost.organization_id
   end
 
   def admin_unpublish
-    authorize @article
-    if @article.has_frontmatter?
-      @article.body_markdown.sub!(/\npublished:\s*true\s*\n/, "\npublished: false\n")
+    authorize @autopost
+    if @autopost.has_frontmatter?
+      @autopost.body_markdown.sub!(/\npublished:\s*true\s*\n/, "\npublished: false\n")
     else
-      @article.published = false
+      @autopost.published = false
     end
 
-    if @article.save
-      render json: { message: "success", path: @article.current_state_path }, status: :ok
+    if @autopost.save
+      render json: { message: "success", path: @autopost.current_state_path }, status: :ok
     else
-      render json: { message: @article.errors.full_messages }, status: :unprocessable_entity
+      render json: { message: @autopost.errors.full_messages }, status: :unprocessable_entity
     end
-  end
-
-  def discussion_lock_confirm
-    # This allows admins to also use this action vs searching only in the current_user.articles scope
-    @article = Autopost.find_by(slug: params[:slug])
-    not_found unless @article
-    authorize @article
-
-    @discussion_lock = DiscussionLock.new
-  end
-
-  def discussion_unlock_confirm
-    # This allows admins to also use this action vs searching only in the current_user.articles scope
-    @article = Autopost.find_by(slug: params[:slug])
-    not_found unless @article
-    authorize @article
-
-    @discussion_lock = @article.discussion_lock
   end
 
   private
@@ -209,11 +189,11 @@ class AutopostsController < ApplicationController
 
   def handle_user_or_organization_feed
     if (@user = User.find_by(username: params[:username]))
-      Honeycomb.add_field("articles_route", "user")
-      @articles = @articles.where(user_id: @user.id)
+      Honeycomb.add_field("autoposts_route", "user")
+      @autoposts = @autoposts.where(user_id: @user.id)
     elsif (@user = Organization.find_by(slug: params[:username]))
-      Honeycomb.add_field("articles_route", "org")
-      @articles = @articles.where(organization_id: @user.id).includes(:user)
+      Honeycomb.add_field("autoposts_route", "org")
+      @autoposts = @autoposts.where(organization_id: @user.id).includes(:user)
     end
   end
 
@@ -221,28 +201,28 @@ class AutopostsController < ApplicationController
     @tag = Tag.aliased_name(params[:tag])
     return unless @tag
 
-    @articles = @articles.cached_tagged_with(@tag)
+    @autoposts = @autoposts.cached_tagged_with(@tag)
   end
 
-  def set_article
+  def set_autopost
     owner = User.find_by(username: params[:username]) || Organization.find_by(slug: params[:username])
-    found_article = if params[:slug] && owner
-                      owner.articles.find_by(slug: params[:slug])
+    found_autopost = if params[:slug] && owner
+                      owner.autoposts.find_by(slug: params[:slug])
                     else
                       Autopost.includes(:user).find(params[:id])
                     end
-    @article = found_article || not_found
-    Honeycomb.add_field("article_id", @article.id)
+    @autopost = found_autopost || not_found
+    Honeycomb.add_field("autopost_id", @autopost.id)
   end
 
   # TODO: refactor all of this update logic into the Autoposts::Updater possibly,
   # ideally there should only be one place to handle the update logic
-  def article_params_json
-    params.require(:article) # to trigger the correct exception in case `:article` is missing
+  def autopost_params_json
+    params.require(:autopost) # to trigger the correct exception in case `:autopost` is missing
 
-    params["article"].transform_keys!(&:underscore)
+    params["autopost"].transform_keys!(&:underscore)
 
-    allowed_params = if params["article"]["version"] == "v1"
+    allowed_params = if params["autopost"]["version"] == "v1"
                        %i[body_markdown]
                      else
                        %i[
@@ -253,28 +233,28 @@ class AutopostsController < ApplicationController
 
     # NOTE: the organization logic is still a little counter intuitive but this should
     # fix the bug <https://github.com/thepracticaldev/dev.to/issues/2871>
-    if params["article"]["user_id"] && org_admin_user_change_privilege
+    if params["autopost"]["user_id"] && org_admin_user_change_privilege
       allowed_params << :user_id
-    elsif params["article"]["organization_id"] && allowed_to_change_org_id?
-      # change the organization of the article only if explicitly asked to do so
+    elsif params["autopost"]["organization_id"] && allowed_to_change_org_id?
+      # change the organization of the autopost only if explicitly asked to do so
       allowed_params << :organization_id
     end
 
-    params.require(:article).permit(allowed_params)
+    params.require(:autopost).permit(allowed_params)
   end
 
   def allowed_to_change_org_id?
-    potential_user = @article&.user || current_user
-    potential_org_id = params["article"]["organization_id"].presence || @article&.organization_id
+    potential_user = @autopost&.user || current_user
+    potential_org_id = params["autopost"]["organization_id"].presence || @autopost&.organization_id
     OrganizationMembership.exists?(user: potential_user, organization_id: potential_org_id) ||
       current_user.any_admin?
   end
 
   def org_admin_user_change_privilege
-    params[:article][:user_id] &&
-      # if current_user is an org admin of the article's org
-      current_user.org_admin?(@article.organization_id) &&
-      # and if the author being changed to belongs to the article's org
-      OrganizationMembership.exists?(user_id: params[:article][:user_id], organization_id: @article.organization_id)
+    params[:autopost][:user_id] &&
+      # if current_user is an org admin of the autopost's org
+      current_user.org_admin?(@autopost.organization_id) &&
+      # and if the author being changed to belongs to the autopost's org
+      OrganizationMembership.exists?(user_id: params[:autopost][:user_id], organization_id: @autopost.organization_id)
   end
 end

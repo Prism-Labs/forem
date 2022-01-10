@@ -249,6 +249,10 @@ module ApplicationHelper
     URL.article(article)
   end
 
+  def autopost_url(autopost)
+    URL.autopost(autopost)
+  end
+
   def comment_url(comment)
     URL.comment(comment)
   end

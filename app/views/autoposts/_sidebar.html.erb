@@ -13,7 +13,7 @@
             <%= inline_svg_tag("twemoji/heart.svg", aria: true, class: "crayons-icon crayons-icon--default ml-1", title: t("views.sponsor.seek")) %>
           </h4>
           <div class="grid grid-cols-1 gap-6">
-            <%= render partial: "articles/single_sponsor", collection: @sponsorships, as: :sponsorship %>
+            <%= render partial: "autoposts/single_sponsor", collection: @sponsorships, as: :sponsorship %>
             <a href="/sponsorships" class="crayons-btn crayons-btn--secondary fs-s"><%= t("views.sponsor.seek") %></a>
           </div>
         </div>

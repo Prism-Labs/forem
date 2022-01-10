@@ -5,7 +5,7 @@
     <h3 class="crayons-subtitle-2"><%= link_to t("views.campaign.subtitle", count: @campaign_articles_count), "/t/#{campaign.main_tag}", class: "crayons-link" %></h3>
   </header>
   <div>
-    <%= render partial: "articles/widget_list_item", collection: @latest_campaign_articles,
+    <%= render partial: "autoposts/widget_list_item", collection: @latest_campaign_articles,
                as: :plucked_article,
                locals: { show_comment_count: false } %>
   </div>

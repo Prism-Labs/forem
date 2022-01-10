@@ -1,8 +1,8 @@
 <div class="crayons-article-actions print-hidden">
   <div class="crayons-article-actions__inner">
-    <% if @article.published? %>
+    <% if @autopost.published? %>
 
-      <%= render partial: "articles/reaction_button",
+      <%= render partial: "autoposts/reaction_button",
                  locals: {
                    category: :like,
                    description: t("views.reactions.like.title"),
@@ -10,7 +10,7 @@
                    image_active_path: "heart-filled.svg",
                    aria_label: t("views.reactions.like.aria_label")
                  } %>
-      <%= render partial: "articles/reaction_button",
+      <%= render partial: "autoposts/reaction_button",
                  locals: {
                    category: :unicorn,
                    description: t("views.reactions.unicorn.title"),
@@ -18,7 +18,7 @@
                    image_active_path: "unicorn-filled.svg",
                    aria_label: t("views.reactions.unicorn.aria_label")
                  } %>
-      <%= render partial: "articles/reaction_button",
+      <%= render partial: "autoposts/reaction_button",
                  locals: {
                    category: :readinglist,
                    description: t("views.reactions.readingList.title"),
@@ -38,7 +38,7 @@
           <button
             id="copy-post-url-button"
             class="flex justify-between crayons-link crayons-link--block w-100 bg-transparent border-0"
-            data-postUrl="<%= article_url(@article) %>">
+            data-postUrl="<%= autopost_url(@autopost) %>">
             <span class="fw-bold"><%= t("views.actions.copy.button") %></span>
             <%= inline_svg_tag("copy.svg", aria_hidden: true, id: "article-copy-icon", class: "crayons-icon mx-2 shrink-0", title: t("views.actions.copy.button")) %>
           </button>
@@ -51,41 +51,41 @@
             class="crayons-link crayons-link--block"
             rel="noopener"
             href='https://twitter.com/intent/tweet?text=<%= u t("views.actions.share.twitter.query",
-                                                                article: @article.title.strip,
-                                                                author: @article.user.twitter_username ? "@#{@article.user.twitter_username}" : @article.user.name) %><%= u " #{Settings::General.twitter_hashtag}" %><%= u " #{article_url(@article)}" %>'>
+                                                                autopost: @autopost.title.strip,
+                                                                author: @autopost.user.twitter_username ? "@#{@autopost.user.twitter_username}" : @autopost.user.name) %><%= u " #{Settings::General.twitter_hashtag}" %><%= u " #{autopost_url(@autopost)}" %>'>
             <%= t("views.actions.share.twitter.text") %>
           </a>
           <a
             target="_blank"
             class="crayons-link crayons-link--block"
             rel="noopener"
-            href="https://www.linkedin.com/shareArticle?mini=true&url=<%= u article_url(@article) %>&title=<%= u @article.title %>&summary=<%= u @article.description %>&source=<%= u community_name %>">
+            href="https://www.linkedin.com/shareArticle?mini=true&url=<%= u autopost_url(@autopost) %>&title=<%= u @autopost.title %>&summary=<%= u @autopost.description %>&source=<%= u community_name %>">
             <%= t("views.actions.share.linkedin.text") %>
           </a>
           <a
             target="_blank"
             class="crayons-link crayons-link--block"
             rel="noopener"
-            href="https://www.reddit.com/submit?url=<%= u article_url(@article) %>&title=<%= u @article.title %>">
+            href="https://www.reddit.com/submit?url=<%= u autopost_url(@autopost) %>&title=<%= u @autopost.title %>">
             <%= t("views.actions.share.reddit.text") %>
           </a>
           <a
             target="_blank"
             class="crayons-link crayons-link--block"
             rel="noopener"
-            href="https://news.ycombinator.com/submitlink?u=<%= u article_url(@article) %>&t=<%= u @article.title %>">
+            href="https://news.ycombinator.com/submitlink?u=<%= u autopost_url(@autopost) %>&t=<%= u @autopost.title %>">
             <%= t("views.actions.share.hackernews.text") %>
           </a>
           <a
             target="_blank"
             class="crayons-link crayons-link--block"
             rel="noopener"
-            href="https://www.facebook.com/sharer.php?u=<%= u article_url(@article) %>">
+            href="https://www.facebook.com/sharer.php?u=<%= u autopost_url(@autopost) %>">
             <%= t("views.actions.share.facebook.text") %>
           </a>
         </div>
 
-        <web-share-wrapper shareurl="<%= article_url(@article) %>" sharetitle="<%= @article.title %>" sharetext="<%= @article.description %>" template="web-share-button">
+        <web-share-wrapper shareurl="<%= autopost_url(@autopost) %>" sharetitle="<%= @autopost.title %>" sharetext="<%= @autopost.description %>" template="web-share-button">
         </web-share-wrapper>
         <template id="web-share-button">
           <a href="#" class="dropdown-link-row crayons-link crayons-link--block"><%= t("views.actions.share.link") %></a>
@@ -97,9 +97,9 @@
   </div>
 </div>
 
-<% if !user_signed_in? && @article.body_markdown.size > 900 %>
+<% if !user_signed_in? && @autopost.body_markdown.size > 900 %>
   <% cache("below-article-html-variant-#{rand(20)}", expires_in: 8.hours) do %>
-    <% @html_variant = HtmlVariant.find_for_test(@article.cached_tag_list_array, "article_show_below_article_cta") %>
+    <% @html_variant = HtmlVariant.find_for_test(@autopost.cached_tag_list_array, "article_show_below_article_cta") %>
     <% if @html_variant %>
       <div class="html-variant-wrapper" id="html-variant-article-show-below-article" data-variant-id="<%= @html_variant.id %>">
         <%= @html_variant.html.html_safe %>
