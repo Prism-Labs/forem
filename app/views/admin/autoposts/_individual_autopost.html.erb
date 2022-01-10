@@ -92,6 +92,34 @@
       </div>
     <% end %>
     <div class="row">
+      <div class="form-group col-md-6">
+        <label for="article_create_freq_<%= autopost.id %>">Article Create Frequency:</label>
+        <select id="article_create_freq_<%= autopost.id %>" class="form-control" name="autopost[article_create_freq]" value="<%=autopost.article_create_freq %>" >
+          <option value="daily">Daily</option>
+          <option value="custom">Custom</option>
+        </select>
+      </div>
+      <div class="form-group col-md-6">
+        <label for="article_create_crontab_<%= autopost.id %>">Article Create Frequency (crontab):</label>
+        <input id="article_create_crontab_<%= autopost.id %>" class="form-control" name="autopost[article_create_crontab]" value="<%=autopost.article_create_crontab %>" />
+      </div>
+    </div>
+    <div class="row">
+      <div class="form-group col-md-6">
+        <label for="article_update_freq_<%= autopost.id %>">Article Update Frequency:</label>
+        <select id="article_update_freq_<%= autopost.id %>" class="form-control" name="autopost[article_update_freq]" value="<%=autopost.article_update_freq %>" >
+          <option value="hourly">Hourly</option>
+          <option value="daily">Daily</option>
+          <option value="custom">Custom</option>
+        </select>
+      </div>
+      <div class="form-group col-md-6">
+        <label for="article_update_crontab_<%= autopost.id %>">Article Update Frequency (crontab):</label>
+        <input id="article_update_crontab_<%= autopost.id %>" class="form-control" name="autopost[article_update_crontab]" value="<%=autopost.article_update_crontab %>" />
+      </div>
+    </div>
+
+    <div class="row">
       <div class="form-check col">
         <%= f.check_box :approved, id: "approved-#{autopost.id}" %>
         <label for="approved-<%= autopost.id %>">Approved</label>

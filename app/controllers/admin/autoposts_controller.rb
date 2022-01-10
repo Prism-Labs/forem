@@ -6,14 +6,17 @@ module Admin
       Audit::Logger.log(:moderator, current_user, params.dup)
     end
 
-    ARTICLES_ALLOWED_PARAMS = %i[social_image
+    AUTOPOSTS_ALLOWED_PARAMS = %i[social_image
                                  body_markdown
                                  approved
                                  email_digest_eligible
                                  main_image_background_hex_color
                                  featured_number
                                  user_id
-                                 published_at].freeze
+                                 published_at
+                                 article_create_freq   article_update_freq
+                                 article_create_crontab   article_update_crontab
+                                ].freeze
 
     def index
       case params[:state]
@@ -72,7 +75,7 @@ module Admin
     end
 
     def autopost_params
-      params.require(:autopost).permit(ARTICLES_ALLOWED_PARAMS)
+      params.require(:autopost).permit(AUTOPOSTS_ALLOWED_PARAMS)
     end
 
     def authorize_admin

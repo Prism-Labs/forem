@@ -104,6 +104,8 @@ export class AutopostForm extends Component {
       canonicalUrl: this.autopost.canonical_url || '', // eslint-disable-line react/no-unused-state
       series: this.autopost.series || '', // eslint-disable-line react/no-unused-state
       allSeries: this.autopost.all_series || [], // eslint-disable-line react/no-unused-state
+      article_create_freq: this.autopost.article_create_freq || '', // eslint-disable-line react/no-unused-state
+      article_update_freq: this.autopost.article_update_freq || '', // eslint-disable-line react/no-unused-state
       bodyMarkdown: this.autopost.body_markdown || '',
       published: this.autopost.published || false,
       previewShowing: false,

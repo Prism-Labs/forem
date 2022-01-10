@@ -37,7 +37,7 @@
 </style>
 
 <main id="main-content"
-  data-autopost="<%= autopost.to_json(only: %i[id title cached_tag_list published body_markdown main_image organization_id canonical_url updated_at], methods: %i[series all_series]) %>"
+  data-autopost="<%= autopost.to_json(only: %i[id title cached_tag_list published body_markdown main_image organization_id canonical_url updated_at article_create_freq article_update_freq], methods: %i[series all_series]) %>"
   data-organizations="<%= organizations&.to_json(only: %i[id name bg_color_hex text_color_hex], methods: [:profile_image_90]) %>"
   data-version="<%= version %>"
   data-site-logo='<%= render "layouts/logo" %>'>

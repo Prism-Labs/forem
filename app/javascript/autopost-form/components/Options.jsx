@@ -31,6 +31,8 @@ export const Options = ({
     allSeries = [],
     canonicalUrl = '',
     series = '',
+    article_create_freq = '',
+    article_update_freq = '',
   },
   onSaveDraft,
   onConfigChange,
@@ -79,6 +81,44 @@ export const Options = ({
       </div>
     );
   }
+
+  const cronOptions = (
+    <div className="crayons-field mb-6">
+      <label htmlFor="series" className="crayons-field__label">
+        Repeat Options
+      </label>
+      <div className="crayons-field__description">
+        Posting Frequency:
+        {` `}
+        <select
+          value={article_create_freq}
+          name="article_create_freq"
+          className="crayons-select"
+          onInput={onConfigChange}
+          required
+          aria-label="Select one of frequency"
+        >
+          <option value="daily">Daily</option>
+        </select>
+      </div>
+      <div className="crayons-field__description">
+        Update Frequency:
+        {` `}
+        <select
+          value={article_update_freq}
+          name="article_update_freq"
+          className="crayons-select"
+          onInput={onConfigChange}
+          required
+          aria-label="Select one of frequency"
+        >
+          <option value="hourly">Hourly</option>
+          <option value="daily">Daily</option>
+        </select>
+      </div>
+    </div>
+  )
+
   return (
     <div className="s:relative">
       <Button
@@ -136,6 +176,7 @@ export const Options = ({
           />
           {existingSeries}
         </div>
+        {cronOptions}
         {publishedField}
         <Button
           id="post-options-done-btn"
@@ -155,6 +196,8 @@ Options.propTypes = {
     allSeries: PropTypes.array.isRequired,
     canonicalUrl: PropTypes.string.isRequired,
     series: PropTypes.string.isRequired,
+    article_create_freq: PropTypes.string,
+    article_update_freq: PropTypes.string,
   }).isRequired,
   onSaveDraft: PropTypes.func.isRequired,
   onConfigChange: PropTypes.func.isRequired,
