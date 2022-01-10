@@ -65,6 +65,22 @@ module Api
         render "api/v0/articles/index", formats: :json
       end
 
+      def autoposts
+        per_page = (params[:per_page] || 30).to_i
+        num = [per_page, 1000].min
+        page = params[:page] || 1
+
+        @autoposts = @organization.autoposts.published
+          .select(ARTICLES_FOR_SERIALIZATION)
+          .includes(:user)
+          .order(published_at: :desc)
+          .page(page)
+          .per(num)
+          .decorate
+
+        render "api/v0/autoposts/index", formats: :json
+      end
+
       private
 
       def find_organization

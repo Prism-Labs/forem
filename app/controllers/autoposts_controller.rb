@@ -151,7 +151,7 @@ class AutopostsController < ApplicationController
     authorize @autopost
     Autoposts::Destroyer.call(@autopost)
     respond_to do |format|
-      format.html { redirect_to "/dashboard", notice: "Autopost was successfully deleted." }
+      format.html { redirect_to "/dashboard/autoposts", notice: "Autopost was successfully deleted." }
       format.json { head :no_content }
     end
   end

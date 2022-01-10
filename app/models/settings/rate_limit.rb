@@ -3,6 +3,7 @@ module Settings
     self.table_name = :settings_rate_limits
 
     setting :article_update, type: :integer, default: 30
+    setting :autopost_update, type: :integer, default: 30
     setting :comment_antispam_creation, type: :integer, default: 1
     # Explicitly defaults to 7 to accommodate DEV Top 7 Posts
     setting :mention_creation, type: :integer, default: 7
@@ -15,6 +16,7 @@ module Settings
     setting :organization_creation, type: :integer, default: 1
     setting :published_article_antispam_creation, type: :integer, default: 1
     setting :published_article_creation, type: :integer, default: 9
+    setting :published_autopost_creation, type: :integer, default: 9
     setting :reaction_creation, type: :integer, default: 10
     setting :send_email_confirmation, type: :integer, default: 2
     setting :spam_trigger_terms, type: :array, default: []

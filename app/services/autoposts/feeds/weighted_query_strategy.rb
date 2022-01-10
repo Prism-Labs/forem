@@ -6,7 +6,7 @@ module Autoposts
     # competitor to the existing feed strategies.
     #
     # It works to implement conceptual parity with two methods of
-    # Articles::Feeds::LargeForemExperimental:
+    # Autoposts::Feeds::LargeForemExperimental:
     #
     # - #default_home_feed
     # - #more_comments_minimal_weight_randomized
@@ -20,7 +20,7 @@ module Autoposts
     # based from the given user's perspective.  Whereas the other Feed
     # algorithm starts with a list of candidates that are global to
     # the given Forem (e.g., starting the base query from the
-    # `articles.score`, a volatile and swingy value that favors global
+    # `autoposts.score`, a volatile and swingy value that favors global
     # reactions over user desired content).
     #
     # This is not quite a chronological only feed but could be easily
@@ -35,7 +35,7 @@ module Autoposts
       #
       # A scoring method should be a SQL fragment that produces a
       # value between 0 and 1.  The closer the value is to 1, the more
-      # relevant the article is for the given user.  Note: the values
+      # relevant the autopost is for the given user.  Note: the values
       # are multiplicative.  Make sure to consider if you want a 0
       # multiplier for your score.  Aspirationally, you may want to
       # think of the relevance_score as the range (0,1].  That is
@@ -79,9 +79,9 @@ module Autoposts
       #       versions and Heroku configurations of current (as of
       #       <2021-11-16 Tue>) DEV.to installations.
       SCORING_METHOD_CONFIGURATIONS = {
-        # Weight to give based on the age of the article.
+        # Weight to give based on the age of the autopost.
         daily_decay_factor: {
-          clause: "(current_date - articles.published_at::date)",
+          clause: "(current_date - autoposts.published_at::date)",
           cases: [
             [0, 1], [1, 0.95], [2, 0.9],
             [3, 0.85], [4, 0.8], [5, 0.75],
@@ -91,9 +91,9 @@ module Autoposts
           ],
           fallback: 0.001,
           requires_user: false,
-          group_by: "articles.published_at"
+          group_by: "autoposts.published_at"
         },
-        # Weight to give for the number of comments on the article
+        # Weight to give for the number of comments on the autopost
         # from other users that the given user follows.
         comment_count_by_those_followed_factor: {
           clause: "COUNT(comments_by_followed.id)",
@@ -101,30 +101,30 @@ module Autoposts
           fallback: 0.93,
           requires_user: true,
           joins: ["LEFT OUTER JOIN follows AS followed_user
-            ON articles.user_id = followed_user.followable_id
+            ON autoposts.user_id = followed_user.followable_id
               AND followed_user.followable_type = 'User'
               AND followed_user.follower_id = :user_id
               AND followed_user.follower_type = 'User'",
                   "LEFT OUTER JOIN comments AS comments_by_followed
-            ON comments_by_followed.commentable_id = articles.id
-              AND comments_by_followed.commentable_type = 'Article'
+            ON comments_by_followed.commentable_id = autoposts.id
+              AND comments_by_followed.commentable_type = 'Autopost'
               AND followed_user.followable_id = comments_by_followed.user_id
               AND followed_user.followable_type = 'User'
               AND comments_by_followed.deleted = false
               AND comments_by_followed.created_at > :oldest_published_at"]
         },
-        # Weight to give to the number of comments on the article.
+        # Weight to give to the number of comments on the autopost.
         comments_count_factor: {
-          clause: "articles.comments_count",
+          clause: "autoposts.comments_count",
           cases: [[0, 0.9], [1, 0.94], [2, 0.95], [3, 0.98], [4, 0.999]],
           fallback: 1,
           requires_user: false,
-          group_by: "articles.comments_count"
+          group_by: "autoposts.comments_count"
         },
         # Weight to give based on the difference between experience
-        # level of the article and given user.
+        # level of the autopost and given user.
         experience_factor: {
-          clause: "ROUND(ABS(articles.experience_level_rating - (SELECT
+          clause: "ROUND(ABS(autoposts.experience_level_rating - (SELECT
               (CASE
                  WHEN experience_level IS NULL THEN :default_user_experience_level
                  ELSE experience_level END ) AS user_experience_level
@@ -133,17 +133,17 @@ module Autoposts
           cases: [[0, 1], [1, 0.98], [2, 0.97], [3, 0.96], [4, 0.95], [5, 0.94]],
           fallback: 0.93,
           requires_user: true,
-          group_by: "articles.experience_level_rating"
+          group_by: "autoposts.experience_level_rating"
         },
-        # Weight to give for feature or unfeatured articles.
-        featured_article_factor: {
-          clause: "(CASE articles.featured WHEN true THEN 1 ELSE 0 END)",
+        # Weight to give for feature or unfeatured autoposts.
+        featured_autopost_factor: {
+          clause: "(CASE autoposts.featured WHEN true THEN 1 ELSE 0 END)",
           cases: [[1, 1]],
           fallback: 0.85,
           requires_user: false,
-          group_by: "articles.featured"
+          group_by: "autoposts.featured"
         },
-        # Weight to give when the given user follows the article's
+        # Weight to give when the given user follows the autopost's
         # author.
         following_author_factor: {
           clause: "COUNT(followed_user.follower_id)",
@@ -151,46 +151,46 @@ module Autoposts
           fallback: 1,
           requires_user: true,
           joins: ["LEFT OUTER JOIN follows AS followed_user
-            ON articles.user_id = followed_user.followable_id
+            ON autoposts.user_id = followed_user.followable_id
               AND followed_user.followable_type = 'User'
               AND followed_user.follower_id = :user_id
               AND followed_user.follower_type = 'User'"]
         },
         # Weight to give to the when the given user follows the
-        # article's organization.
+        # autopost's organization.
         following_org_factor: {
           clause: "COUNT(followed_org.follower_id)",
           cases: [[0, 0.95], [1, 1]],
           fallback: 1,
           requires_user: true,
           joins: ["LEFT OUTER JOIN follows AS followed_org
-            ON articles.organization_id = followed_org.followable_id
+            ON autoposts.organization_id = followed_org.followable_id
               AND followed_org.followable_type = 'Organization'
               AND followed_org.follower_id = :user_id
               AND followed_org.follower_type = 'User'"]
         },
-        # Weight to give an article based on it's most recent comment.
+        # Weight to give an autopost based on it's most recent comment.
         latest_comment_factor: {
           clause: "(current_date - MAX(comments.created_at)::date)",
           cases: [[0, 1], [1, 0.9988]],
           fallback: 0.988,
           requires_user: false,
           joins: ["LEFT OUTER JOIN comments
-            ON comments.commentable_id = articles.id
-              AND comments.commentable_type = 'Article'
+            ON comments.commentable_id = autoposts.id
+              AND comments.commentable_type = 'Autopost'
               AND comments.deleted = false
               AND comments.created_at > :oldest_published_at"]
         },
         # Weight to give for the number of intersecting tags the given
-        # user follows and the article has.
+        # user follows and the autopost has.
         matching_tags_factor: {
           clause: "COUNT(followed_tags.follower_id)",
           cases: [[0, 0.4], [1, 0.9]],
           fallback: 1,
           requires_user: true,
           joins: ["LEFT OUTER JOIN taggings
-            ON taggings.taggable_id = articles.id
-              AND taggable_type = 'Article'",
+            ON taggings.taggable_id = autoposts.id
+              AND taggable_type = 'Autopost'",
                   "INNER JOIN tags
               ON taggings.tag_id = tags.id",
                   "LEFT OUTER JOIN follows AS followed_tags
@@ -203,30 +203,30 @@ module Autoposts
         # Weight privileged user's reactions.
         privileged_user_reaction_factor: {
           clause: "(CASE
-                 WHEN articles.privileged_users_reaction_points_sum < :negative_reaction_threshold THEN -1
-                 WHEN articles.privileged_users_reaction_points_sum > :positive_reaction_threshold THEN 1
+                 WHEN autoposts.privileged_users_reaction_points_sum < :negative_reaction_threshold THEN -1
+                 WHEN autoposts.privileged_users_reaction_points_sum > :positive_reaction_threshold THEN 1
                  ELSE 0 END)",
           cases: [[-1, 0.2],
                   [1, 1]],
           fallback: 0.95,
           requires_user: false,
-          group_by: "articles.privileged_users_reaction_points_sum"
+          group_by: "autoposts.privileged_users_reaction_points_sum"
         },
-        # Weight to give for the number of reactions on the article.
+        # Weight to give for the number of reactions on the autopost.
         reactions_factor: {
-          clause: "articles.reactions_count",
+          clause: "autoposts.reactions_count",
           cases: [[0, 0.9988], [1, 0.9988], [2, 0.9988], [3, 0.9988]],
           fallback: 1,
           requires_user: false,
-          group_by: "articles.reactions_count"
+          group_by: "autoposts.reactions_count"
         },
-        # Weight to give based on spaminess of the article.
+        # Weight to give based on spaminess of the autopost.
         spaminess_factor: {
-          clause: "articles.spaminess_rating",
+          clause: "autoposts.spaminess_rating",
           cases: [[0, 1]],
           fallback: 0,
           requires_user: false,
-          group_by: "articles.spaminess_rating"
+          group_by: "autoposts.spaminess_rating"
         }
       }.freeze
 
@@ -236,7 +236,7 @@ module Autoposts
       DEFAULT_POSITIVE_REACTION_THRESHOLD = 10
 
       # @param user [User] who are we querying for?
-      # @param number_of_articles [Integer] how many articles are we
+      # @param number_of_autoposts [Integer] how many autoposts are we
       #   returning
       # @param page [Integer] what is the pagination page
       # @param tag [String, nil] this isn't implemented in other feeds
@@ -247,19 +247,19 @@ module Autoposts
       #   allows for you to configure which methods you want to use.
       #   This is most relevant when running A/B testing.
       # @option config [Integer] :negative_reaction_threshold, when
-      #         the `articles.privileged_users_reaction_points_sum` is
+      #         the `autoposts.privileged_users_reaction_points_sum` is
       #         less than this amount, treat this is a negative
       #         reaction from moderators.
       # @option config [Integer] :positive_reaction_threshold when
-      #         the `articles.privileged_users_reaction_points_sum` is
+      #         the `autoposts.privileged_users_reaction_points_sum` is
       #         greater than this amount, treat this is a positive
       #         reaction from moderators.
       #
       # @todo I envision that we will tweak the factors we choose, so
       #   those will likely need some kind of structured consideration.
-      def initialize(user: nil, number_of_articles: 50, page: 1, tag: nil, **config)
+      def initialize(user: nil, number_of_autoposts: 50, page: 1, tag: nil, **config)
         @user = user
-        @number_of_articles = number_of_articles.to_i
+        @number_of_autoposts = number_of_autoposts.to_i
         @page = (page || 1).to_i
         # TODO: The tag parameter is vestigial, there's no logic around this value.
         @tag = tag
@@ -269,32 +269,32 @@ module Autoposts
         @scoring_configs = config.fetch(:scoring_configs) { default_scoring_configs }
         configure!(scoring_configs: @scoring_configs)
 
-        @oldest_published_at = Articles::Feeds.oldest_published_at_to_consider_for(
+        @oldest_published_at = Autoposts::Feeds.oldest_published_at_to_consider_for(
           user: @user,
           days_since_published: @days_since_published,
         )
       end
 
-      # The goal of this query is to generate a list of articles that
+      # The goal of this query is to generate a list of autoposts that
       # are relevant to the user's interest.
       #
-      # First we give a score to an article based on it's publication
+      # First we give a score to an autopost based on it's publication
       # date.  The max possible score is 1.
       #
       # Then we begin multiplying that score by numbers between 0 and
       # 1.  The closer that multiplier is to 1 the "more relevant"
       # that factor is to the user.
       #
-      # @param only_featured [Boolean] select only articles that are
+      # @param only_featured [Boolean] select only autoposts that are
       #        "featured"
-      # @param must_have_main_image [Boolean] select only articles
+      # @param must_have_main_image [Boolean] select only autoposts
       #        that have a main image.
       # @param limit [Integer] the number of records to return
       # @param offset [Integer] start the paging window at the given offset
-      # @param omit_article_ids [Array] don't include these articles
+      # @param omit_autopost_ids [Array] don't include these autoposts
       #        in the search results
       #
-      # @return ActiveRecord::Relation for Article
+      # @return ActiveRecord::Relation for Autopost
       #
       # @note This creates a complicated SQL query; well actually an
       #       ActiveRecord::Relation object on which you can call
@@ -305,16 +305,16 @@ module Autoposts
       # @example
       #
       #    user = User.first
-      #    strategy = Articles::Feed::WeightedQueryStrategy.new(user: user)
+      #    strategy = Autoposts::Feed::WeightedQueryStrategy.new(user: user)
       #    puts strategy.call.to_sql
       #
       # rubocop:disable Layout/LineLength
-      def call(only_featured: false, must_have_main_image: false, limit: default_limit, offset: default_offset, omit_article_ids: [])
+      def call(only_featured: false, must_have_main_image: false, limit: default_limit, offset: default_offset, omit_autopost_ids: [])
         repeated_query_variables = {
           negative_reaction_threshold: @negative_reaction_threshold,
           positive_reaction_threshold: @positive_reaction_threshold,
           oldest_published_at: @oldest_published_at,
-          omit_article_ids: omit_article_ids,
+          omit_autopost_ids: omit_autopost_ids,
           now: Time.current
         }
         unsanitized_sub_sql = if @user.nil?
@@ -324,7 +324,7 @@ module Autoposts
                                     must_have_main_image: must_have_main_image,
                                     limit: limit,
                                     offset: offset,
-                                    omit_article_ids: omit_article_ids,
+                                    omit_autopost_ids: omit_autopost_ids,
                                   ),
                                   repeated_query_variables,
                                 ]
@@ -335,7 +335,7 @@ module Autoposts
                                     must_have_main_image: must_have_main_image,
                                     limit: limit,
                                     offset: offset,
-                                    omit_article_ids: omit_article_ids,
+                                    omit_autopost_ids: omit_autopost_ids,
                                   ),
                                   repeated_query_variables.merge({
                                                                    user_id: @user.id,
@@ -349,10 +349,10 @@ module Autoposts
         # can use to help ensure that we can use all of the
         # ActiveRecord goodness of scopes (e.g.,
         # limited_column_select) and eager includes.
-        Article.where(
-          Article.arel_table[:id].in(
+        Autopost.where(
+          Autopost.arel_table[:id].in(
             Arel.sql(
-              Article.sanitize_sql(unsanitized_sub_sql),
+              Autopost.sanitize_sql(unsanitized_sub_sql),
             ),
           ),
         ).limited_column_select.includes(top_comments: :user).order(published_at: :desc)
@@ -373,28 +373,28 @@ module Autoposts
 
       alias more_comments_minimal_weight_randomized call
 
-      # The featured story should be the article that:
+      # The featured story should be the autopost that:
       #
       # - has the highest relevance score for the nil_user version
       # - has a main image (see note below).
       #
-      # The other articles should use the nil_user version and require
+      # The other autoposts should use the nil_user version and require
       # the `featured = true` attribute.  In my envisioned
       # implementation, the pagination would omit the featured story.
       #
-      # @return [Array<Article, Array<Article>] a featured story
-      #         Article and an array of Article objects.
+      # @return [Array<Autopost, Array<Autopost>] a featured story
+      #         Autopost and an array of Autopost objects.
       #
-      # @note Per prior work, a featured story is the article that has
+      # @note Per prior work, a featured story is the autopost that has
       #       a main image, is marked as featured (e.g., featured =
       #       true), and has the highest relevance score.  In the
-      #       Articles::Feeds::LargeForemExperimental object we used
+      #       Autoposts::Feeds::LargeForemExperimental object we used
       #       the hotness_score to determine which to use.  The
       #       hotness score is most analogue to how this class
       #       calculates the relevance score when we don't have a
       #       user.
       #
-      # @note There are requests to allow for the featured article to
+      # @note There are requests to allow for the featured autopost to
       #       NOT require a main image.  We're still talking through
       #       what that means.  This work relates to PR #15333.
       #
@@ -407,26 +407,26 @@ module Autoposts
       #       want to use a completely different set of scoring
       #       methods.
       #
-      # @note The logic of Articles::Feeds::FindFeaturedStory does not
-      #       (at present) filter apply an `Article.featured` scope.
+      # @note The logic of Autoposts::Feeds::FindFeaturedStory does not
+      #       (at present) filter apply an `Autopost.featured` scope.
       #       [@jeremyf] I have reported this in
       #       https://github.com/forem/forem/issues/15613 to get clarity
       #       from product.
       def featured_story_and_default_home_feed(**)
         # NOTE: See the
-        # https://github.com/forem/forem/blob/c1a3ba99ebec2e1ca220e9530c26cac7757c690b/app/services/articles/feeds/weighted_query_strategy.rb#L410-L426
+        # https://github.com/forem/forem/blob/c1a3ba99ebec2e1ca220e9530c26cac7757c690b/app/services/autoposts/feeds/weighted_query_strategy.rb#L410-L426
         # state of the codebase for the implementation of first selecting
         # the feature story (using the same query logic) then selecting
-        # the related articles.  With the below implementation, we need to
+        # the related autoposts.  With the below implementation, we need to
         # do antics in the upstream javascript file to remove the featured
         # file.  See the
-        # https://github.com/forem/forem/blob/c1a3ba99ebec2e1ca220e9530c26cac7757c690b/app/javascript/articles/Feed.jsx#L42-L63
+        # https://github.com/forem/forem/blob/c1a3ba99ebec2e1ca220e9530c26cac7757c690b/app/javascript/autoposts/Feed.jsx#L42-L63
         # for that process.
         #
         # tl;dr - the below implementation creates additional downstream complexities.
-        articles = call
-        featured_story = Articles::Feeds::FindFeaturedStory.call(articles)
-        [featured_story, articles]
+        autoposts = call
+        featured_story = Autoposts::Feeds::FindFeaturedStory.call(autoposts)
+        [featured_story, autoposts]
       end
 
       private
@@ -441,67 +441,67 @@ module Autoposts
       # The sql statement for selecting based on relevance scores that
       # are for nil users.
       # rubocop:disable Layout/LineLength
-      def sql_sub_query_for_nil_user(limit:, offset:, omit_article_ids:, only_featured: false, must_have_main_image: false)
+      def sql_sub_query_for_nil_user(limit:, offset:, omit_autopost_ids:, only_featured: false, must_have_main_image: false)
         # rubocop:enable Layout/LineLength
         where_clause = build_sql_with_where_clauses(
           only_featured: only_featured,
           must_have_main_image: must_have_main_image,
-          omit_article_ids: omit_article_ids,
+          omit_autopost_ids: omit_autopost_ids,
         )
         <<~THE_SQL_STATEMENT
-          SELECT articles.id
-          FROM articles
+          SELECT autoposts.id
+          FROM autoposts
           #{joins_clauses_as_sql}
           WHERE #{where_clause}
-          GROUP BY articles.id
+          GROUP BY autoposts.id
           ORDER BY (#{relevance_score_components_as_sql}) DESC,
-            articles.published_at DESC
+            autoposts.published_at DESC
           #{offset_and_limit_clause(offset: offset, limit: limit)}
         THE_SQL_STATEMENT
       end
 
       # The sql statement for selecting based on relevance scores that
       # are user required.
-      def sql_sub_query_for_existing_user(only_featured:, must_have_main_image:, limit:, offset:, omit_article_ids:)
+      def sql_sub_query_for_existing_user(only_featured:, must_have_main_image:, limit:, offset:, omit_autopost_ids:)
         where_clause = build_sql_with_where_clauses(
           only_featured: only_featured,
           must_have_main_image: must_have_main_image,
-          omit_article_ids: omit_article_ids,
+          omit_autopost_ids: omit_autopost_ids,
         )
         <<~THE_SQL_STATEMENT
-          SELECT articles.id
-          FROM articles
+          SELECT autoposts.id
+          FROM autoposts
           #{joins_clauses_as_sql}
           WHERE #{where_clause}
           GROUP BY #{group_by_fields_as_sql}
           ORDER BY (#{relevance_score_components_as_sql}) DESC,
-            articles.published_at DESC
+            autoposts.published_at DESC
             #{offset_and_limit_clause(offset: offset, limit: limit)}
         THE_SQL_STATEMENT
       end
 
       # @todo Do we want to favor published at for scoping, or do we
-      #       want to consider `articles.last_comment_at`.  If we do,
+      #       want to consider `autoposts.last_comment_at`.  If we do,
       #       we must remember to add an index to that field.
-      def build_sql_with_where_clauses(only_featured:, must_have_main_image:, omit_article_ids:)
-        where_clauses = "articles.published = true AND articles.published_at > :oldest_published_at"
-        # See Articles.published scope discussion regarding the query planner
-        where_clauses += " AND articles.published_at < :now"
+      def build_sql_with_where_clauses(only_featured:, must_have_main_image:, omit_autopost_ids:)
+        where_clauses = "autoposts.published = true AND autoposts.published_at > :oldest_published_at"
+        # See Autoposts.published scope discussion regarding the query planner
+        where_clauses += " AND autoposts.published_at < :now"
 
-        # Without the compact, if we have `omit_article_ids: [nil]` we
-        # have the following SQL clause: `articles.id NOT IN (NULL)`
+        # Without the compact, if we have `omit_autopost_ids: [nil]` we
+        # have the following SQL clause: `autoposts.id NOT IN (NULL)`
         # which will immediately omit EVERYTHING from the query.
-        where_clauses += " AND articles.id NOT IN (:omit_article_ids)" unless omit_article_ids.compact.empty?
-        where_clauses += " AND articles.featured = true" if only_featured
-        where_clauses += " AND articles.main_image IS NOT NULL" if must_have_main_image
+        where_clauses += " AND autoposts.id NOT IN (:omit_autopost_ids)" unless omit_autopost_ids.compact.empty?
+        where_clauses += " AND autoposts.featured = true" if only_featured
+        where_clauses += " AND autoposts.main_image IS NOT NULL" if must_have_main_image
         where_clauses
       end
 
       def offset_and_limit_clause(offset:, limit:)
         if offset.to_i.positive?
-          Article.sanitize_sql_array(["OFFSET ? LIMIT ?", offset, limit])
+          Autopost.sanitize_sql_array(["OFFSET ? LIMIT ?", offset, limit])
         else
-          Article.sanitize_sql_array(["LIMIT ?", limit])
+          Autopost.sanitize_sql_array(["LIMIT ?", limit])
         end
       end
 
@@ -515,7 +515,7 @@ module Autoposts
       end
 
       def default_limit
-        @number_of_articles.to_i
+        @number_of_autoposts.to_i
       end
 
       def default_offset
@@ -537,20 +537,20 @@ module Autoposts
       # @see SCORING_METHOD_CONFIGURATIONS
       # @note Be mindful to guard against SQL injection!
       def configure!(scoring_configs:)
-        @days_since_published = Articles::Feeds::DEFAULT_DAYS_SINCE_PUBLISHED
+        @days_since_published = Autoposts::Feeds::DEFAULT_DAYS_SINCE_PUBLISHED
         @relevance_score_components = []
 
-        # By default we always need to group by the articles.id
+        # By default we always need to group by the autoposts.id
         # column.  And as we add scoring methods to the query, we need
         # to add additional group_by clauses based on the chosen
         # scoring method.
-        @group_by_fields = ["articles.id"]
+        @group_by_fields = ["autoposts.id"]
 
         @joins = Set.new
 
         unless @user.nil?
           @joins << "LEFT OUTER JOIN user_blocks
-            ON user_blocks.blocked_id = articles.user_id
+            ON user_blocks.blocked_id = autoposts.user_id
               AND user_blocks.blocked_id IS NULL
               AND user_blocks.blocker_id = :user_id"
         end
@@ -617,7 +617,7 @@ module Autoposts
         values << fallback.to_f
         values.unshift(text)
 
-        Article.sanitize_sql_array(values)
+        Autopost.sanitize_sql_array(values)
       end
     end
   end

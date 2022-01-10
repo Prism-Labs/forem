@@ -1,6 +1,6 @@
 module Autoposts
   module Feeds
-    # The default number of days old that an article can be for us
+    # The default number of days old that an autopost can be for us
     # to consider it in the relevance feed.
     #
     # @note I believe that it is likely we would extract this constant
@@ -16,19 +16,19 @@ module Autoposts
 
     # @api private
     #
-    # This method helps answer the question: What are the articles
+    # This method helps answer the question: What are the autoposts
     # that I should consider as new for the given user?  This method
     # provides a date by which to filter out "stale to the user"
-    # articles.
+    # autoposts.
     #
     # @note Do we need to continue using this method?  It's part of
     #       the hot story grab experiment that we ran with the
-    #       Article::Feeds::LargeForemExperimental, but may not be
+    #       Autopost::Feeds::LargeForemExperimental, but may not be
     #       relevant.
     #
     # @param user [User]
     # @param days_since_published [Integer] if someone
-    #        hasn't viewed any articles, give them things from the
+    #        hasn't viewed any autoposts, give them things from the
     #        database seeds.
     #
     # @return [ActiveSupport::TimeWithZone]

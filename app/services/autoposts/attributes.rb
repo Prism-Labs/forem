@@ -4,11 +4,11 @@ module Autoposts
                     edited_at main_image organization_id user_id published
                     title video_thumbnail_url].freeze
 
-    attr_reader :attributes, :article_user
+    attr_reader :attributes, :autopost_user
 
-    def initialize(attributes, article_user)
+    def initialize(attributes, autopost_user)
       @attributes = attributes
-      @article_user = article_user
+      @autopost_user = autopost_user
     end
 
     def for_update(update_edited_at: false)
@@ -23,7 +23,7 @@ module Autoposts
     private
 
     def collection
-      Collection.find_series(attributes[:series], article_user) if attributes[:series].present?
+      Collection.find_series(attributes[:series], autopost_user) if attributes[:series].present?
     end
 
     def tag_list

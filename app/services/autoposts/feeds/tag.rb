@@ -1,24 +1,24 @@
 module Autoposts
   module Feeds
     module Tag
-      def self.call(tag = nil, number_of_articles: Article::DEFAULT_FEED_PAGINATION_WINDOW_SIZE, page: 1)
-        articles =
+      def self.call(tag = nil, number_of_autoposts: Autopost::DEFAULT_FEED_PAGINATION_WINDOW_SIZE, page: 1)
+        autoposts =
           if tag.present?
-            if FeatureFlag.enabled?(:optimize_article_tag_query)
-              Article.cached_tagged_with_any(tag)
+            if FeatureFlag.enabled?(:optimize_autopost_tag_query)
+              Autopost.cached_tagged_with_any(tag)
             else
-              ::Tag.find_by(name: tag).articles
+              ::Tag.find_by(name: tag).autoposts
             end
           else
-            Article.all
+            Autopost.all
           end
 
-        articles
+        autoposts
           .published
           .limited_column_select
           .includes(top_comments: :user)
           .page(page)
-          .per(number_of_articles)
+          .per(number_of_autoposts)
       end
     end
   end

@@ -20,10 +20,22 @@ module RateLimitCheckerHelper
       title: "Limit number of posts created by a new member",
       description: new_user_message("posts")
     },
+    published_autopost_creation: {
+      min: 0,
+      placeholder: 9,
+      title: "Limit number of autoposts created",
+      description: "How many autoposts can someone create within any 30 second period?"
+    },
     article_update: {
       min: 1,
       placeholder: 30,
       title: "Limit number of updates to a post",
+      description: "How many updates can someone make within any 30 second period? Update API docs when changed."
+    },
+    autopost_update: {
+      min: 1,
+      placeholder: 30,
+      title: "Limit number of updates to a autopost",
       description: "How many updates can someone make within any 30 second period? Update API docs when changed."
     },
     image_upload: {

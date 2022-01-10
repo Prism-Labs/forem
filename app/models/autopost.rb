@@ -16,8 +16,8 @@ class Autopost < ApplicationRecord
   delegate :name, to: :user, prefix: true
   delegate :username, to: :user, prefix: true
 
-  # touch: true was removed because when an article is updated, the associated collection
-  # is touched along with all its articles(including this one). This causes eventually a deadlock.
+  # touch: true was removed because when an autopost is updated, the associated collection
+  # is touched along with all its autoposts(including this one). This causes eventually a deadlock.
   belongs_to :collection, optional: true
 
   belongs_to :organization, optional: true
@@ -26,12 +26,12 @@ class Autopost < ApplicationRecord
   counter_culture :user
   counter_culture :organization
 
-  # The date that we began limiting the number of user mentions in an article.
+  # The date that we began limiting the number of user mentions in an autopost.
   MAX_USER_MENTION_LIVE_AT = Time.utc(2021, 4, 7).freeze
   UNIQUE_URL_ERROR = "has already been taken. " \
                      "Email #{ForemInstance.email} for further details.".freeze
 
-  has_many :articles, dependent: :nullify
+  has_many :autoposts, dependent: :nullify
 
   validates :body_markdown, bytesize: { maximum: 800.kilobytes, too_long: "is too long." }
   validates :body_markdown, length: { minimum: 0, allow_nil: false }
@@ -106,7 +106,7 @@ class Autopost < ApplicationRecord
            :video, :user_id, :organization_id, :video_source_url, :video_code,
            :video_thumbnail_url, :video_closed_caption_track_url,
            :experience_level_rating, :experience_level_rating_distribution, :cached_user, :cached_organization,
-           :published_at, :description, :video_duration_in_seconds)
+           :published_at, :description, :reading_time, :video_duration_in_seconds)
   }
 
   scope :limited_columns_internal_select, lambda {
@@ -150,7 +150,7 @@ class Autopost < ApplicationRecord
   scope :eager_load_serialized_data, -> { includes(:user, :organization, :tags) }
 
   def search_id
-    "article_#{id}"
+    "autopost_#{id}"
   end
 
   def processed_description
@@ -232,7 +232,7 @@ class Autopost < ApplicationRecord
   end
 
   def series
-    # name of series article is part of
+    # name of series autopost is part of
     collection&.slug
   end
 
@@ -266,6 +266,10 @@ class Autopost < ApplicationRecord
   end
 
   private
+
+  def search_score
+    1
+  end
 
   def tag_keywords_for_search
     tags.pluck(:keywords_for_search).join
@@ -327,10 +331,10 @@ class Autopost < ApplicationRecord
 
   def before_destroy_actions
     bust_cache(destroying: true)
-    article_ids = user.article_ids.dup
+    autopost_ids = user.autopost_ids.dup
     if organization
-      organization.touch(:last_article_at)
-      article_ids.concat organization.article_ids
+      organization.touch(:last_autopost_at)
+      autopost_ids.concat organization.autopost_ids
     end
   end
 
@@ -352,7 +356,7 @@ class Autopost < ApplicationRecord
   def determine_image(front_matter)
     # In order to clear out the cover_image, we check for the key in the front_matter.
     # If the key exists, we use the value from it (a url or `nil`).
-    # Otherwise, we fall back to the main_image on the article.
+    # Otherwise, we fall back to the main_image on the autopost.
     has_cover_image = front_matter.include?("cover_image")
 
     if has_cover_image && (front_matter["cover_image"].present? || main_image)
@@ -368,10 +372,6 @@ class Autopost < ApplicationRecord
   end
 
   def validate_tag
-    # remove adjusted tags
-    remove_tag_adjustments_from_tag_list
-    add_tag_adjustments_to_tag_list
-
     # check there are not too many tags
     return errors.add(:tag_list, "exceed the maximum of 4 tags") if tag_list.size > 4
 
@@ -381,20 +381,6 @@ class Autopost < ApplicationRecord
       new_tag.validate_name
       new_tag.errors.messages[:name].each { |message| errors.add(:tag, "\"#{tag}\" #{message}") }
     end
-  end
-
-  def remove_tag_adjustments_from_tag_list
-    tags_to_remove = TagAdjustment.where(article_id: id, adjustment_type: "removal",
-                                         status: "committed").pluck(:tag_name)
-    tag_list.remove(tags_to_remove, parse: true) if tags_to_remove.present?
-  end
-
-  def add_tag_adjustments_to_tag_list
-    tags_to_add = TagAdjustment.where(article_id: id, adjustment_type: "addition", status: "committed").pluck(:tag_name)
-    return if tags_to_add.blank?
-
-    tag_list.add(tags_to_add, parse: true)
-    self.tag_list = tag_list.map { |tag| Tag.find_preferred_alias_for(tag) }
   end
 
   def validate_video
@@ -462,11 +448,11 @@ class Autopost < ApplicationRecord
     "#{Sterile.sluggerize(title)}-#{rand(100_000).to_s(26)}"
   end
 
-  def touch_actor_latest_article_updated_at(destroying: false)
+  def touch_actor_latest_autopost_updated_at(destroying: false)
     return unless destroying || saved_changes.keys.intersection(%w[title cached_tag_list]).present?
 
-    user.touch(:latest_article_updated_at)
-    organization&.touch(:latest_article_updated_at)
+    user.touch(:latest_autopost_updated_at)
+    organization&.touch(:latest_autopost_updated_at)
   end
 
   def bust_cache(destroying: false)
@@ -474,7 +460,7 @@ class Autopost < ApplicationRecord
     cache_bust.call(path)
     cache_bust.call("#{path}?i=i")
     cache_bust.call("#{path}?preview=#{password}")
-    touch_actor_latest_article_updated_at(destroying: destroying)
+    touch_actor_latest_autopost_updated_at(destroying: destroying)
   end
 
   def touch_collection

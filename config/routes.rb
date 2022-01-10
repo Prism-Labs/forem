@@ -90,6 +90,7 @@ Rails.application.routes.draw do
           resources :users, only: [:index], to: "organizations#users"
           resources :listings, only: [:index], to: "organizations#listings"
           resources :articles, only: [:index], to: "organizations#articles"
+          resources :autoposts, only: [:index], to: "organizations#autoposts"
         end
         resource :instance, only: %i[show]
       end
@@ -108,6 +109,9 @@ Rails.application.routes.draw do
     resources :messages, only: [:create]
     resources :articles, only: %i[update create destroy] do
       patch "/admin_unpublish", to: "articles#admin_unpublish"
+    end
+    resources :autoposts, only: %i[update create destroy] do
+      patch "/admin_unpublish", to: "autoposts#admin_unpublish"
     end
     resources :article_mutes, only: %i[update]
     resources :comments, only: %i[create update destroy] do
@@ -370,6 +374,8 @@ Rails.application.routes.draw do
     get "/top/:timeframe", to: "stories#index"
 
     get "/:timeframe", to: "stories#index", constraints: { timeframe: /latest/ }
+
+    get "/:username/autoposts/:slug", to: "autoposts#edit"
 
     get "/:username/series", to: "collections#index", as: "user_series"
     get "/:username/series/:id", to: "collections#show"

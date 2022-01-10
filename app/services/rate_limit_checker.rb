@@ -4,12 +4,14 @@ class RateLimitChecker
   # retry_after values are the seconds until a user can retry an action
   ACTION_LIMITERS = {
     article_update: { retry_after: 30 },
+    autopost_update: { retry_after: 30 },
     feedback_message_creation: { retry_after: 300 },
     image_upload: { retry_after: 30 },
     listing_creation: { retry_after: 60 },
     organization_creation: { retry_after: 300 },
     published_article_creation: { retry_after: 30 },
     published_article_antispam_creation: { retry_after: 300 },
+    published_autopost_creation: { retry_after: 30 },
     reaction_creation: { retry_after: 30 },
     send_email_confirmation: { retry_after: 120 },
     user_subscription_creation: { retry_after: 30 },
@@ -99,6 +101,12 @@ class RateLimitChecker
     # TODO: We should make this time frame configurable.
     user.articles.published.where("created_at > ?", 5.minutes.ago).size >
       Settings::RateLimit.published_article_antispam_creation
+  end
+
+  def check_published_autopost_creation_limit
+    # TODO: We should make this time frame configurable.
+    user.autoposts.published.where("created_at > ?", 30.seconds.ago).size >
+      Settings::RateLimit.published_autopost_creation
   end
 
   def check_comment_antispam_creation_limit

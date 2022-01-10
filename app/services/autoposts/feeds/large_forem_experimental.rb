@@ -1,12 +1,12 @@
 module Autoposts
   module Feeds
     class LargeForemExperimental
-      def initialize(user: nil, number_of_articles: Article::DEFAULT_FEED_PAGINATION_WINDOW_SIZE, page: 1, tag: nil)
+      def initialize(user: nil, number_of_autoposts: Autopost::DEFAULT_FEED_PAGINATION_WINDOW_SIZE, page: 1, tag: nil)
         @user = user
-        @number_of_articles = number_of_articles
+        @number_of_autoposts = number_of_autoposts
         @page = page
         @tag = tag
-        @article_score_applicator = Articles::Feeds::ArticleScoreCalculatorForUser.new(user: user)
+        @autopost_score_applicator = Autoposts::Feeds::AutopostScoreCalculatorForUser.new(user: user)
       end
 
       def default_home_feed(user_signed_in: false)
@@ -22,8 +22,8 @@ module Autoposts
       #
       # @note the must_have_main_image parameter name matches PR #15240
       def featured_story_and_default_home_feed(user_signed_in: false, ranking: true, must_have_main_image: true)
-        featured_story, hot_stories = globally_hot_articles(user_signed_in, must_have_main_image: must_have_main_image)
-        hot_stories = rank_and_sort_articles(hot_stories) if @user && ranking
+        featured_story, hot_stories = globally_hot_autoposts(user_signed_in, must_have_main_image: must_have_main_image)
+        hot_stories = rank_and_sort_autoposts(hot_stories) if @user && ranking
         [featured_story, hot_stories]
       end
 
@@ -42,24 +42,24 @@ module Autoposts
       alias more_comments_minimal_weight_randomized_at_end more_comments_minimal_weight_randomized
 
       # @api private
-      def rank_and_sort_articles(articles)
-        ranked_articles = articles.each_with_object({}) do |article, result|
-          article_points = score_single_article(article)
-          result[article] = article_points
+      def rank_and_sort_autoposts(autoposts)
+        ranked_autoposts = autoposts.each_with_object({}) do |autopost, result|
+          autopost_points = score_single_autopost(autopost)
+          result[autopost] = autopost_points
         end
-        ranked_articles = ranked_articles.sort_by { |_article, article_points| -article_points }.map(&:first)
-        ranked_articles.to(@number_of_articles - 1)
+        ranked_autoposts = ranked_autoposts.sort_by { |_autopost, autopost_points| -autopost_points }.map(&:first)
+        ranked_autoposts.to(@number_of_autoposts - 1)
       end
 
       # @api private
-      def score_single_article(article, base_article_points: 0)
-        article_points = base_article_points
-        article_points += score_followed_user(article)
-        article_points += score_followed_organization(article)
-        article_points += score_followed_tags(article)
-        article_points += score_experience_level(article)
-        article_points += score_comments(article)
-        article_points
+      def score_single_autopost(autopost, base_autopost_points: 0)
+        autopost_points = base_autopost_points
+        autopost_points += score_followed_user(autopost)
+        autopost_points += score_followed_organization(autopost)
+        autopost_points += score_followed_tags(autopost)
+        autopost_points += score_experience_level(autopost)
+        autopost_points += score_comments(autopost)
+        autopost_points
       end
 
       delegate(:score_followed_user,
@@ -67,24 +67,24 @@ module Autoposts
                :score_followed_organization,
                :score_experience_level,
                :score_comments,
-               to: :@article_score_applicator)
+               to: :@autopost_score_applicator)
 
       # @api private
       # rubocop:disable Layout/LineLength
-      def globally_hot_articles(user_signed_in, must_have_main_image: true, article_score_threshold: -15, min_rand_limit: 15, max_rand_limit: 80)
+      def globally_hot_autoposts(user_signed_in, must_have_main_image: true, autopost_score_threshold: -15, min_rand_limit: 15, max_rand_limit: 80)
         # rubocop:enable Layout/LineLength
         if user_signed_in
           hot_stories = experimental_hot_story_grab
           hot_stories = hot_stories.where.not(user_id: UserBlock.cached_blocked_ids_for_blocker(@user.id))
           featured_story = featured_story_from(stories: hot_stories, must_have_main_image: must_have_main_image)
-          new_stories = Article.published
-            .where("score > ?", article_score_threshold)
+          new_stories = Autopost.published
+            .where("score > ?", autopost_score_threshold)
             .limited_column_select.includes(top_comments: :user).order(published_at: :desc)
             .limit(rand(min_rand_limit..max_rand_limit))
           hot_stories = hot_stories.to_a + new_stories.to_a
         else
-          hot_stories = Article.published.limited_column_select
-            .page(@page).per(@number_of_articles)
+          hot_stories = Autopost.published.limited_column_select
+            .page(@page).per(@number_of_autoposts)
             .where("score >= ? OR featured = ?", Settings::UserExperience.home_feed_minimum_score, true)
             .order(hotness_score: :desc)
           featured_story = featured_story_from(stories: hot_stories, must_have_main_image: must_have_main_image)
@@ -101,10 +101,10 @@ module Autoposts
       end
 
       def experimental_hot_story_grab
-        start_time = Articles::Feeds.oldest_published_at_to_consider_for(user: @user)
-        Article.published.limited_column_select.includes(top_comments: :user)
+        start_time = Autoposts::Feeds.oldest_published_at_to_consider_for(user: @user)
+        Autopost.published.limited_column_select.includes(top_comments: :user)
           .where("published_at > ?", start_time)
-          .page(@page).per(@number_of_articles)
+          .page(@page).per(@number_of_autoposts)
           .order(score: :desc)
       end
 

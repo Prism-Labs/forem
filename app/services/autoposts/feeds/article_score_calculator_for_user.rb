@@ -3,13 +3,13 @@ module Autoposts
     # @api private
     #
     # The purpose of this class is to encapsulate how we apply scores
-    # to an article.
+    # to an autopost.
     #
-    # @see Articles::Feeds::Basic
-    # @see Articles::Feeds::LargeForemExperimental
-    class ArticleScoreCalculatorForUser
+    # @see Autoposts::Feeds::Basic
+    # @see Autoposts::Feeds::LargeForemExperimental
+    class AutopostScoreCalculatorForUser
       # This constant defines some of the levers that we use to help
-      # calculate an article's score.
+      # calculate an autopost's score.
       DEFAULT_CONFIGURATION = {
         comment_weight: 0.2,
         xp_level_weight: 1,
@@ -23,7 +23,7 @@ module Autoposts
         not_followed_org_score: 0
       }.freeze
 
-      # @param user [User] the user for whom we're calculating the article score.
+      # @param user [User] the user for whom we're calculating the autopost score.
       # @param config [Hash<Symbol,(Integer|Float)>] exposes the means
       #   for overriding the default configuration values
       #
@@ -36,39 +36,39 @@ module Autoposts
       end
 
       # @api private
-      def score_followed_user(article)
-        user_following_users_ids.include?(article.user_id) ? @followed_user_score : @not_followed_user_score
+      def score_followed_user(autopost)
+        user_following_users_ids.include?(autopost.user_id) ? @followed_user_score : @not_followed_user_score
       end
 
       # @api private
-      def score_followed_tags(article)
+      def score_followed_tags(autopost)
         return @nil_user_tag_score unless @user
 
-        article_tags = article.decorate.cached_tag_list_array
+        autopost_tags = autopost.decorate.cached_tag_list_array
         user_followed_tags.sum do |tag|
-          article_tags.include?(tag.name) ? tag.points * @followed_tag_weight : @not_followed_tag_score
+          autopost_tags.include?(tag.name) ? tag.points * @followed_tag_weight : @not_followed_tag_score
         end
       end
 
       # @api private
-      def score_followed_organization(article)
-        return @not_followed_org_score unless article.organization_id?
+      def score_followed_organization(autopost)
+        return @not_followed_org_score unless autopost.organization_id?
 
-        user_following_org_ids.include?(article.organization_id) ? @followed_org_score : @not_followed_org_score
+        user_following_org_ids.include?(autopost.organization_id) ? @followed_org_score : @not_followed_org_score
       end
 
       # @api private
-      def score_experience_level(article)
+      def score_experience_level(autopost)
         user_experience_level = @user&.setting&.experience_level || @default_user_xp_level
 
         # Calculate the distance between the user's experience level
-        # and that of the article's experience level.
-        - (((article.experience_level_rating - user_experience_level).abs / 2) * @xp_level_weight)
+        # and that of the autopost's experience level.
+        - (((autopost.experience_level_rating - user_experience_level).abs / 2) * @xp_level_weight)
       end
 
       # @api private
-      def score_comments(article)
-        article.comments_count * @comment_weight
+      def score_comments(autopost)
+        autopost.comments_count * @comment_weight
       end
 
       private

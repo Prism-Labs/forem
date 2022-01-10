@@ -113,7 +113,6 @@
                   ・<em>Updated on <%= local_date(@autopost.edited_at, show_year: @autopost.edited_at.year != Time.current.year) %></em>
                 <% end %>
 
-                <span class="mr-4">・<%= @autopost.reading_time < 1 ? 1 : @autopost.reading_time %> min read</span>
               </span>
               <span id="action-space" class="mb-4 s:mb-0"></span>
             </div>

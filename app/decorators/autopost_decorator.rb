@@ -2,7 +2,7 @@ class AutopostDecorator < ApplicationDecorator
   LONG_MARKDOWN_THRESHOLD = 900
 
   def current_state_path
-    published ? "/#{username}/autoposts/#{slug}" : "/#{username}/autoposts/#{slug}?preview=#{password}"
+    "/#{username}/autoposts/#{slug}"
   end
 
   def processed_canonical_url
@@ -11,10 +11,6 @@ class AutopostDecorator < ApplicationDecorator
     else
       url
     end
-  end
-
-  def comments_to_show_count
-    cached_tag_list_array.include?("discuss") ? 75 : 25
   end
 
   def cached_tag_list_array
@@ -65,12 +61,6 @@ class AutopostDecorator < ApplicationDecorator
       video_thumbnail_url: cloudinary_video_url,
       video_closed_caption_track_url: video_closed_caption_track_url
     }
-  end
-
-  def has_recent_comment_activity?(timeframe = 1.week.ago)
-    return false if last_comment_at.blank?
-
-    last_comment_at > timeframe
   end
 
   def long_markdown?

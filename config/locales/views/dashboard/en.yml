@@ -94,6 +94,55 @@ en:
         author_is: 'AUTHOR: '
         save: Save
         submit: Submit author change
+      autopost:
+        heading:
+          text_html: "%{archived}%{title}"
+          archived: "[Archived] "
+        archived: Archived
+        published: 'Published:'
+        published_html: 'Published: %{date}'
+        edited: 'Edited:'
+        edited_html: 'Edited: %{date}'
+        series: 'Series:'
+        series_html: "<strong>Series:</strong> %{series}"
+        draft: Draft
+        reactions:
+          title: Reactions
+          icon: Reactions
+          text_html:
+            one: "%{num} reaction"
+            other: "%{num} reactions"
+        views:
+          title: Views
+          icon: Views
+          lt_25: "< 25"
+          text_html:
+            one: "%{scale} view"
+            other: "%{scale} views"
+          u_25: under 25
+        subscriptions:
+          title: Subscriptions
+          icon: Data
+          number: Subscriptions (%{num})
+        delete: Delete
+        manage:
+          aria_label: 'Manage autopost: %{title}'
+          text: Manage
+        lock: Lock discussion
+        unlock: Unlock discussion
+        edit:
+          aria_label: 'Edit autopost: %{title}'
+          text: Edit
+        more:
+          title: 'More options for autopost: %{title}'
+          icon: More...
+        stats: Stats
+        archive: Archive autopost
+        unarchive: Unarchive autopost
+        author: Author
+        author_is: 'AUTHOR: '
+        save: Save
+        submit: Submit author change
       followers:
         heading: Dashboard » Followers
         empty: You don't have any followers yet...

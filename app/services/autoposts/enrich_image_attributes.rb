@@ -18,8 +18,8 @@ module Autoposts
     # FastImage will use this number both for read and open timeout
     TIMEOUT = 10
 
-    def self.call(article)
-      parsed_html = Nokogiri::HTML.fragment(article.processed_html)
+    def self.call(autopost)
+      parsed_html = Nokogiri::HTML.fragment(autopost.processed_html)
 
       # we ignore images contained in liquid tags as they are not animated
       images = parsed_html.css("img") - parsed_html.css(IMAGES_IN_LIQUID_TAGS_SELECTORS)
@@ -43,7 +43,7 @@ module Autoposts
         img["data-animated"] = true if FastImage.animated?(image, timeout: TIMEOUT)
       end
 
-      article.update_columns(processed_html: parsed_html.to_html)
+      autopost.update_columns(processed_html: parsed_html.to_html)
     end
 
     def self.image_width_height(img, timeout = TIMEOUT)
@@ -55,7 +55,7 @@ module Autoposts
 
     def self.retrieve_image_from_uploader_store(src)
       filename = File.basename(src)
-      uploader = ArticleImageUploader.new
+      uploader = AutopostImageUploader.new
       uploader.retrieve_from_store!(filename)
 
       return unless uploader.file.exists?

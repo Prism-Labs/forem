@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_01_04_358317) do
+ActiveRecord::Schema.define(version: 2022_01_04_358323) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
@@ -204,7 +204,7 @@ ActiveRecord::Schema.define(version: 2022_01_04_358317) do
     t.float "experience_level_rating_distribution"
     t.datetime "last_experience_level_rating_at"
     t.string "main_image"
-    t.string "main_image_background_hex_color"
+    t.string "main_image_background_hex_color", default: "#dddddd"
     t.integer "organization_id"
     t.datetime "originally_published_at"
     t.string "password"
@@ -212,6 +212,7 @@ ActiveRecord::Schema.define(version: 2022_01_04_358317) do
     t.text "processed_html"
     t.boolean "published"
     t.datetime "published_at"
+    t.integer "reading_time", default: 0
     t.text "slug"
     t.string "social_image"
     t.string "title"
@@ -790,6 +791,7 @@ ActiveRecord::Schema.define(version: 2022_01_04_358317) do
     t.string "email"
     t.string "github_username"
     t.datetime "last_article_at", default: "2017-01-01 05:00:00"
+    t.datetime "last_autopost_at", default: "2017-01-01 05:00:00"
     t.datetime "latest_article_updated_at"
     t.string "location"
     t.string "name"
@@ -1309,6 +1311,7 @@ ActiveRecord::Schema.define(version: 2022_01_04_358317) do
     t.bigint "invited_by_id"
     t.string "invited_by_type"
     t.datetime "last_article_at", default: "2017-01-01 05:00:00"
+    t.datetime "last_autopost_at", default: "2017-01-01 05:00:00"
     t.datetime "last_comment_at", default: "2017-01-01 05:00:00"
     t.datetime "last_followed_at"
     t.datetime "last_moderation_notification", default: "2017-01-01 08:00:00"

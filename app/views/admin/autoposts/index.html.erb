@@ -1,0 +1,28 @@
+<div
+  class="row">
+  <div class="col-12">
+    <ul class="nav nav-tabs nav-fill">
+      <li class="nav-item">
+        <a href="<%= admin_autopost_path %>" class="nav-link <%= "active" if params[:state].blank? %>">Hot</a>
+      </li>
+      <li class="nav-item">
+        <a
+          href="<%= admin_autopost_path(state: :chronological) %>"
+          class="nav-link <%= "active" if params[:state] == "chronological" %>">Chronological</a>
+      </li>
+    </ul>
+    <% if params[:state] && params[:state].include?("top-") && params[:state] != "top-3" && params[:state] != "top-6" %>
+      <h1 style="color:red">
+        <%= params[:state] %>-months
+      </h1>
+    <% end %>
+  </div>
+
+  <div class="col-12">
+    <%= paginate @autoposts %>
+    <%= render partial: "individual_autopost", collection: @autoposts, as: :autopost %>
+    <%= paginate @autoposts %>
+  </div>
+</div>
+
+<%= render partial: "image_upload_script" %>

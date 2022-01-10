@@ -1,27 +1,27 @@
 module Autoposts
   module Feeds
     class Basic
-      def initialize(user: nil, number_of_articles: Article::DEFAULT_FEED_PAGINATION_WINDOW_SIZE, page: 1, tag: nil)
+      def initialize(user: nil, number_of_autoposts: Autopost::DEFAULT_FEED_PAGINATION_WINDOW_SIZE, page: 1, tag: nil)
         @user = user
-        @number_of_articles = number_of_articles
+        @number_of_autoposts = number_of_autoposts
         @page = page
         @tag = tag
-        @article_score_applicator = Articles::Feeds::ArticleScoreCalculatorForUser.new(user: @user)
+        @autopost_score_applicator = Autoposts::Feeds::AutopostScoreCalculatorForUser.new(user: @user)
       end
 
       def default_home_feed(**_kwargs)
-        articles = Article.published
+        autoposts = Autopost.published
           .order(hotness_score: :desc)
           .where(score: 0..)
-          .limit(@number_of_articles)
+          .limit(@number_of_autoposts)
           .limited_column_select.includes(top_comments: :user)
-        return articles unless @user
+        return autoposts unless @user
 
-        articles = articles.where.not(user_id: UserBlock.cached_blocked_ids_for_blocker(@user.id))
-        articles.sort_by.with_index do |article, index|
-          tag_score = score_followed_tags(article)
-          user_score = score_followed_user(article)
-          org_score = score_followed_organization(article)
+        autoposts = autoposts.where.not(user_id: UserBlock.cached_blocked_ids_for_blocker(@user.id))
+        autoposts.sort_by.with_index do |autopost, index|
+          tag_score = score_followed_tags(autopost)
+          user_score = score_followed_user(autopost)
+          org_score = score_followed_organization(autopost)
 
           # NOTE: Not quite understanding the purpose of the `-
           # index`.  My guess is that it helps reduce the impact of the
@@ -36,13 +36,13 @@ module Autoposts
 
       # Creating :more_comments_minimal_weight_randomized to conform
       # to the public interface of
-      # Articles::Feeds::LargeForemExperimental
+      # Autoposts::Feeds::LargeForemExperimental
       alias more_comments_minimal_weight_randomized default_home_feed
 
       delegate(:score_followed_tags,
                :score_followed_user,
                :score_followed_organization,
-               to: :@article_score_applicator)
+               to: :@autopost_score_applicator)
     end
   end
 end
