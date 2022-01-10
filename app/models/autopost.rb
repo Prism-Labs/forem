@@ -36,7 +36,11 @@ class Autopost < ApplicationRecord
   validates :body_markdown, bytesize: { maximum: 800.kilobytes, too_long: "is too long." }
   validates :body_markdown, length: { minimum: 0, allow_nil: false }
   validates :body_markdown, uniqueness: { scope: %i[user_id title] }
-
+  validates :cached_tag_list, length: { maximum: 126 }
+  validates :canonical_url,
+            uniqueness: { allow_nil: true, scope: :published, message: UNIQUE_URL_ERROR },
+            if: :published?
+  validates :canonical_url, url: { allow_blank: true, no_local: true, schemes: %w[https http] }
   validates :main_image, url: { allow_blank: true, schemes: %w[https http] }
   validates :main_image_background_hex_color, format: /\A#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})\z/
   validates :slug, presence: { if: :published? }, format: /\A[0-9a-z\-_]*\z/
@@ -78,6 +82,11 @@ class Autopost < ApplicationRecord
   }
   scope :unpublished, -> { where(published: false) }
 
+  # [@jeremyf] For approved articles is there always an assumption of
+  #            published?  Regardless, the scope helps us deal with
+  #            that in the future.
+  scope :approved, -> { where(approved: true) }
+
   scope :admin_published_with, lambda { |tag_name|
     published
       .where(user_id: User.with_role(:super_admin)
@@ -94,6 +103,48 @@ class Autopost < ApplicationRecord
       .tagged_with(tag_name)
   }
 
+  scope :cached_tagged_with, lambda { |tag|
+    case tag
+    when String, Symbol
+      # In Postgres regexes, the [[:<:]] and [[:>:]] are equivalent to "start of
+      # word" and "end of word", respectively. They're similar to `\b` in Perl-
+      # compatible regexes (PCRE), but that matches at either end of a word.
+      # They're more comparable to how vim's `\<` and `\>` work.
+      where("cached_tag_list ~ ?", "[[:<:]]#{tag}[[:>:]]")
+    when Array
+      tag.reduce(self) { |acc, elem| acc.cached_tagged_with(elem) }
+    when Tag
+      cached_tagged_with(tag.name)
+    else
+      raise TypeError, "Cannot search tags for: #{tag.inspect}"
+    end
+  }
+
+  scope :cached_tagged_with_any, lambda { |tags|
+    case tags
+    when String, Symbol
+      cached_tagged_with(tags)
+    when Array
+      tags
+        .map { |tag| cached_tagged_with(tag) }
+        .reduce { |acc, elem| acc.or(elem) }
+    when Tag
+      cached_tagged_with(tags.name)
+    else
+      raise TypeError, "Cannot search tags for: #{tags.inspect}"
+    end
+  }
+
+  # NOTE: @citizen428
+  # I'd usually avoid using Arel directly like this. However, none of the more
+  # straight-forward ways of negating the above scope worked:
+  # 1. A subquery doesn't work because we're not dealing with a simple NOT IN scenario.
+  # 2. where.not(cached_tagged_with_any(tags).where_values_hash) doesn't work because where_values_hash
+  #    only works for simple conditions and returns an empty hash in this case.
+  scope :not_cached_tagged_with_any, lambda { |tags|
+    where(cached_tagged_with_any(tags).arel.constraints.reduce(:or).not)
+  }
+
   scope :active_help, lambda {
     stories = published.cached_tagged_with("help").order(created_at: :desc)
 
@@ -102,6 +153,7 @@ class Autopost < ApplicationRecord
 
   scope :limited_column_select, lambda {
     select(:path, :title, :id, :published,
+           :cached_tag_list,
            :main_image, :main_image_background_hex_color, :updated_at, :slug,
            :video, :user_id, :organization_id, :video_source_url, :video_code,
            :video_thumbnail_url, :video_closed_caption_track_url,
@@ -110,7 +162,8 @@ class Autopost < ApplicationRecord
   }
 
   scope :limited_columns_internal_select, lambda {
-    select(:path, :title, :id, :published,
+    select(:path, :title, :id, :approved, :published,
+           :cached_tag_list,
            :main_image, :main_image_background_hex_color, :updated_at,
            :video, :user_id, :organization_id, :video_source_url, :video_code,
            :video_thumbnail_url, :video_closed_caption_track_url, :social_image,
@@ -175,7 +228,7 @@ class Autopost < ApplicationRecord
   end
 
   def current_state_path
-    published ? "/#{username}/#{slug}" : "/#{username}/#{slug}?preview=#{password}"
+    published ? "/#{username}/autoposts/#{slug}" : "/#{username}/autoposts/#{slug}?preview=#{password}"
   end
 
   def has_frontmatter?
@@ -222,13 +275,12 @@ class Autopost < ApplicationRecord
 
   def published_timestamp
     return "" unless published
-    return "" unless crossposted_at || published_at
 
     displayable_published_at.utc.iso8601
   end
 
   def displayable_published_at
-    crossposted_at.presence || published_at
+    published_at
   end
 
   def series
@@ -277,9 +329,9 @@ class Autopost < ApplicationRecord
 
   def calculated_path
     if organization
-      "/#{organization.slug}/#{slug}"
+      "/#{organization.slug}/autoposts/#{slug}"
     else
-      "/#{username}/#{slug}"
+      "/#{username}/autoposts/#{slug}"
     end
   end
 

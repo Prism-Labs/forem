@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_01_04_358323) do
+ActiveRecord::Schema.define(version: 2022_01_04_358325) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
@@ -188,6 +188,7 @@ ActiveRecord::Schema.define(version: 2022_01_04_358323) do
   end
 
   create_table "autoposts", force: :cascade do |t|
+    t.boolean "approved", default: false
     t.boolean "archived"
     t.text "body_markdown"
     t.string "cached_organization"

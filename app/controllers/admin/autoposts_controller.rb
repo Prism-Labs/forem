@@ -50,7 +50,6 @@ module Admin
         .where("published_at > ?", months_ago)
         .includes(user: [:notes])
         .limited_columns_internal_select
-        .order(public_reactions_count: :desc)
         .page(params[:page])
         .per(50)
     end
@@ -68,7 +67,6 @@ module Admin
       Autopost.published
         .includes(user: [:notes])
         .limited_columns_internal_select
-        .order(hotness_score: :desc)
         .page(params[:page])
         .per(30)
     end

@@ -103,10 +103,6 @@
                   <em>
                     Originally published at
                     <a href="<%= @autopost.canonical_url || @autopost.feed_source_url %>" style="color:#1395b8"><%= get_host_without_www(@autopost.canonical_url || @autopost.feed_source_url) %></a>
-                    <% if @autopost.crossposted_at %>
-                      on
-                      <%= local_date(@autopost.originally_published_at || @autopost.published_at, show_year: (@autopost.originally_published_at || @autopost.published_at).year != Time.current.year) %>
-                    <% end %>
                   </em>
                 <% end %>
                 <% if should_show_updated_on?(@autopost) %>

@@ -4,15 +4,14 @@
   }
 </style>
 
-<% decorated_article = autopost.decorate %>
+<% decorated_autopost = autopost.decorate %>
 
 <div class="card my-3"
-     data-controller="article"
-     data-article-id-value="<%= autopost.id %>"
-     data-article-pin-path-value="<%= stories_feed_pinned_article_path %>"
-     data-article-bg-highlighted-class="bg-highlighted"
-     data-article-border-highlighted-class="border-highlighted"
-     data-action="ajax:success@document->article#ajaxSuccess">
+     data-controller="autopost"
+     data-autopost-id-value="<%= autopost.id %>"
+     data-autopost-bg-highlighted-class="bg-highlighted"
+     data-autopost-border-highlighted-class="border-highlighted"
+     data-action="ajax:success@document->autopost#ajaxSuccess">
 
   <div class="card-header">
     <h2>
@@ -28,18 +27,8 @@
 
       <a href="<%= admin_user_path(autopost.user_id) %>" class="badge badge-light">@<%= autopost.user&.username %></a>
 
-      <span class="badge badge-light">❤️ <%= autopost.public_reactions_count %> 💬 <%= autopost.comments_count %></span>
-
       <span class="badge badge-light">
-        <% if autopost.published_from_feed? && !autopost.published? %>
-          RSS Import <%= autopost.created_at.strftime("%b %d, %Y") %>
-          Originally Published <%= autopost.published_at&.strftime("%b %d, %Y") %>
-        <% elsif autopost.crossposted_at? %>
-          Crossposted <%= autopost.crossposted_at.strftime("%b %d, %Y") %> & Published
-          <%= autopost.published_at&.strftime("%b %d, %Y") %>
-        <% else %>
-          <%= autopost.published_at&.strftime("%b %d, %Y") %>
-        <% end %>
+        <%= autopost.published_at&.strftime("%b %d, %Y") %>
       </span>
 
       <% decorated_autopost.cached_tag_list_array.each do |tag| %>
@@ -51,7 +40,7 @@
   <% background_color = "" %>
 
   <div
-    data-article-target="cardBody"
+    data-autopost-target="cardBody"
     class="card-body <%= background_color %> <%= "bg-danger" if !autopost.published? && autopost.published_from_feed? %>">
 
     <% if autopost.video %>
@@ -81,7 +70,7 @@
       <br />
     </div>
     <% end %>
-    <%= form_with url: admin_article_path(autopost.id), model: article, local: true do |f| %>
+    <%= form_with url: admin_autopost_path(autopost.id), model: autopost, local: true do |f| %>
     <div class="form-group">
       <input name="utf8" type="hidden" value="✓">
       <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>" />
@@ -90,7 +79,7 @@
     <div class="row">
       <div class="form-group col">
         <label for="author_id_<%= autopost.id %>">Author ID:</label>
-        <input id="author_id_<%= autopost.id %>" class="form-control" size="6" name="article[user_id]"
+        <input id="author_id_<%= autopost.id %>" class="form-control" size="6" name="autopost[user_id]"
           value="<%= autopost.user_id %>">
       </div>
     </div>

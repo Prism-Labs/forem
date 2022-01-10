@@ -127,17 +127,6 @@
                     <% if should_show_updated_on?(@autopost) %>
                       &bull; <%= t("views.articles.edited_html", date: local_date(@autopost.edited_at, show_year: @autopost.edited_at.year != Time.current.year)) %>
                     <% end %>
-
-                    <% if should_show_crossposted_on?(@autopost) %>
-                      &bull; <%= t("views.articles.crossposted.text_html",
-                                   url: link_to(get_host_without_www(@autopost.canonical_url || @autopost.feed_source_url), @autopost.canonical_url || @autopost.feed_source_url, style: "color:#1395b8"),
-                                   on: if @autopost.crossposted_at
-                                         t("views.articles.crossposted.on_html",
-                                           date: local_date(@autopost.originally_published_at || @autopost.published_at, show_year: (@autopost.originally_published_at || @autopost.published_at).year != Time.current.year))
-                                       else
-                                         ""
-                                       end) %>
-                    <% end %>
                   </p>
                 </div>
               </div>

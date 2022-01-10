@@ -7,8 +7,17 @@ module ArticlesHelper
     ["Most Comments", "comments-desc"],
   ].freeze
 
+  DASHBOARD_AUTOPOSTS_SORT_OPTIONS = [
+    ["Recently Created", "creation-desc"],
+    ["Recently Published", "published-desc"],
+  ].freeze
+
   def sort_options
     DASHBOARD_POSTS_SORT_OPTIONS
+  end
+
+  def sort_options_for_autoposts
+    DASHBOARD_AUTOPOSTS_SORT_OPTIONS
   end
 
   def has_vid?(article)

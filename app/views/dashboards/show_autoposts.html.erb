@@ -19,7 +19,7 @@
             <%= link_to t("views.dashboard.autoposts.archived"), "javascript:;", id: "toggleArchivedLink", class: "crayons-btn crayons-btn--outlined whitespace-nowrap" %>
           <% end %>
           <% if @autoposts.any? %>
-            <%= select_tag "dashboard_sort", options_for_select(sort_options, params[:sort]), "aria-label": t("views.dashboard.autoposts.option.aria_label"), class: "crayons-select w-auto" %>
+            <%= select_tag "dashboard_sort", options_for_select(sort_options_for_autoposts, params[:sort]), "aria-label": t("views.dashboard.autoposts.option.aria_label"), class: "crayons-select w-auto" %>
           <% end %>
         <% end %>
 

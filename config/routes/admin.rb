@@ -80,6 +80,7 @@ namespace :admin do
         post :pin
       end
     end
+    resources :autoposts, only: %i[index show update]
 
     resources :badges, only: %i[index edit update new create]
     resources :badge_achievements, only: %i[index destroy]

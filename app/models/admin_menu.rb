@@ -12,6 +12,7 @@ class AdminMenu
 
     scope :content_manager, "dashboard-line", [
       item(name: "posts", controller: "articles"),
+      item(name: "autoposts", controller: "autoposts"),
       item(name: "comments", controller: "comments"),
       item(name: "badges", children: [
              item(name: "library", controller: "badges"),

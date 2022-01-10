@@ -11,9 +11,9 @@ module Api
 
       INDEX_ATTRIBUTES_FOR_SERIALIZATION = %i[
         id user_id organization_id collection_id
-        title description main_image published_at crossposted_at social_image
-        cached_tag_list slug path canonical_url comments_count
-        public_reactions_count created_at edited_at last_comment_at published
+        title description main_image published_at social_image
+        cached_tag_list slug path canonical_url
+        created_at edited_at published
         updated_at video_thumbnail_url reading_time
       ].freeze
 
@@ -25,8 +25,8 @@ module Api
       ME_ATTRIBUTES_FOR_SERIALIZATION = %i[
         id user_id organization_id
         title description main_image published published_at cached_tag_list
-        slug path canonical_url comments_count public_reactions_count
-        page_views_count crossposted_at body_markdown updated_at reading_time
+        slug path canonical_url
+        page_views_count body_markdown updated_at reading_time
       ].freeze
       private_constant :ME_ATTRIBUTES_FOR_SERIALIZATION
 
@@ -50,7 +50,7 @@ module Api
       def show_by_slug
         @autopost = Autopost.published
           .select(SHOW_ATTRIBUTES_FOR_SERIALIZATION)
-          .find_by!(path: "/#{params[:username]}/#{params[:slug]}")
+          .find_by!(path: "/#{params[:username]}/autoposts/#{params[:slug]}")
           .decorate
 
         set_surrogate_key_header @autopost.record_key

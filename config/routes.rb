@@ -49,6 +49,13 @@ Rails.application.routes.draw do
             get "/latest", to: "articles#index", defaults: { sort: "desc" }
           end
         end
+        resources :autoposts, only: %i[index show create update] do
+          collection do
+            get "me(/:status)", to: "autoposts#me", as: :me, constraints: { status: /published|unpublished|all/ }
+            get "/:username/autoposts/:slug", to: "autoposts#show_by_slug", as: :slug
+            get "/latest", to: "autoposts#index", defaults: { sort: "desc" }
+          end
+        end
         resources :comments, only: %i[index show]
         resources :videos, only: [:index]
         resources :podcast_episodes, only: [:index]
@@ -376,6 +383,10 @@ Rails.application.routes.draw do
     get "/:timeframe", to: "stories#index", constraints: { timeframe: /latest/ }
 
     get "/:username/autoposts/:slug", to: "autoposts#edit"
+    get "/:username/autoposts/:slug/manage", to: "autoposts#manage", as: :autopost_manage
+    get "/:username/autoposts/:slug/edit", to: "autoposts#edit"
+    get "/:username/autoposts/:slug/delete_confirm", to: "autoposts#delete_confirm"
+    get "/:username/autoposts/:slug/stats", to: "autoposts#stats"
 
     get "/:username/series", to: "collections#index", as: "user_series"
     get "/:username/series/:id", to: "collections#show"
