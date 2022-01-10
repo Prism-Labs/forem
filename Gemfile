@@ -182,3 +182,4 @@ end
 # Customization for Everlist and Ghostwriter
 gem "google_search_results", "~> 2.1"
 gem "embedly", "~> 1.9.0"
+gem 'parse-cron', '~> 0.1.4' # Parses Crontab expression
