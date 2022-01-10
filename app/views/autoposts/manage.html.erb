@@ -33,7 +33,7 @@
   </div>
 
   <div class="dashboard-container crayons-layout">
-    <%= render "dashboards/dashboard_article", autopost: @autopost, discussion_lock: @discussion_lock, organization: @autopost.organization, org_admin: @user.org_admin?(@autopost.organization), manage_view: true %>
+    <%= render "dashboards/dashboard_autopost", autopost: @autopost, organization: @autopost.organization, org_admin: @user.org_admin?(@autopost.organization), manage_view: true %>
     <div class="single-article single-article-manage-form-wrapper">
       <%= form_for(RatingVote.new) do |f| %>
         <h2><%= t("views.manager.rating.heading") %></h2>

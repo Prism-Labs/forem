@@ -126,6 +126,7 @@ class User < ApplicationRecord
          :recoverable, :lockable
 
   validates :articles_count, presence: true
+  validates :autoposts_count, presence: true
   validates :badge_achievements_count, presence: true
   validates :blocked_by_count, presence: true
   validates :blocking_others_count, presence: true

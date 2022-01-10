@@ -27,6 +27,25 @@ class DashboardsController < ApplicationController
     @articles = Kaminari.paginate_array(@articles).page(params[:page]).per(50)
   end
 
+  def show_autoposts
+    target = @user
+    not_authorized if params[:org_id] && !@user.org_admin?(params[:org_id] || @user.any_admin?)
+
+    @organizations = @user.admin_organizations
+
+    if params[:which] == "organization" && params[:org_id] && (@user.org_admin?(params[:org_id]) || @user.any_admin?)
+      target = @organizations.find_by(id: params[:org_id])
+      @organization = target
+      @autoposts = target.autoposts
+    else
+      # if the target is a user, we need to eager load the organization
+      @autoposts = target.autoposts.includes(:organization)
+    end
+
+    @autoposts = @autoposts.includes(:collection).sorting(params[:sort]).decorate
+    @autoposts = Kaminari.paginate_array(@autoposts).page(params[:page]).per(50)
+  end
+
   def following_tags
     @followed_tags = @user.follows_by_type("ActsAsTaggableOn::Tag")
       .order(points: :desc).includes(:followable).limit(@follows_limit)

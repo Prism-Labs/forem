@@ -19,6 +19,15 @@
     </li>
 
     <li>
+      <a class="crayons-link crayons-link--block <%= "crayons-link--current" if params[:action] == "show_autoposts" && (params[:which] == "organization" || params[:which].blank?) %>"
+        href="/dashboard/autoposts"
+        <%= params[:action] == "show_autoposts" && (params[:which] == "organization" || params[:which].blank?) ? ' aria-current="page"'.html_safe : "" %>>
+        <%= t("views.dashboard.actions.autoposts") %>
+        <span class="crayons-indicator"><%= @user.autoposts_count %></span>
+      </a>
+    </li>
+
+    <li>
       <a class="crayons-link crayons-link--block <%= "crayons-link--current" if params[:action] == "followers" %>"
         href="/dashboard/user_followers"
         <%= params[:action] == "followers" ? ' aria-current="page"'.html_safe : "" %>>

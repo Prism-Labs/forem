@@ -29,6 +29,7 @@ class Organization < ApplicationRecord
   after_destroy_commit :bust_cache
 
   has_many :articles, dependent: :nullify
+  has_many :autoposts, dependent: :nullify
   has_many :collections, dependent: :nullify
   has_many :credits, dependent: :restrict_with_error
   has_many :display_ads, dependent: :destroy
@@ -41,6 +42,7 @@ class Organization < ApplicationRecord
   has_many :users, through: :organization_memberships
 
   validates :articles_count, presence: true
+  validates :autoposts_count, presence: true
   validates :bg_color_hex, format: COLOR_HEX_REGEXP, allow_blank: true
   validates :company_size, format: { with: INTEGER_REGEXP, message: MESSAGES[:integer_only], allow_blank: true }
   validates :company_size, length: { maximum: 7 }, allow_nil: true

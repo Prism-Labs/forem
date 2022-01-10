@@ -15,6 +15,7 @@ en:
           following_pods: Following podcasts (%{num})
         posts: Posts
         series: Series
+        autoposts: Autoposts
         followers: Followers
         following_tags: Following tags
         following_users: Following users
@@ -134,6 +135,18 @@ en:
         empty:
           desc: This is where you can manage your posts, but you haven't written anything yet.
           new: Write your first post now
+      autoposts:
+        heading: Autoposts
+        archived: Show archived
+        option:
+          creation-desc: Recently Created
+          published-desc: Recently Published
+          aria_label: Sort By
+        org: "%{name} (%{num})"
+        personal: Personal
+        empty:
+          desc: This is where you can manage your autoposts, but you haven't written anything yet.
+          new: Write your first autopost now
       subscriptions:
         meta:
           title: Subscriptions %{title}

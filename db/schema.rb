@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_01_04_358315) do
+ActiveRecord::Schema.define(version: 2022_01_04_358317) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
@@ -84,6 +84,8 @@ ActiveRecord::Schema.define(version: 2022_01_04_358315) do
     t.boolean "approved", default: false
     t.boolean "archived", default: false
     t.bigint "autopost_id"
+    t.integer "autopost_template_id"
+    t.bigint "autopost_templates_id"
     t.text "body_html"
     t.text "body_markdown"
     t.text "cached_organization"
@@ -154,6 +156,7 @@ ActiveRecord::Schema.define(version: 2022_01_04_358315) do
     t.string "video_state"
     t.string "video_thumbnail_url"
     t.index "user_id, title, digest(body_markdown, 'sha512'::text)", name: "index_articles_on_user_id_and_title_and_digest_body_markdown", unique: true
+    t.index ["autopost_templates_id"], name: "index_articles_on_autopost_templates_id"
     t.index ["cached_tag_list"], name: "index_articles_on_cached_tag_list", opclass: :gin_trgm_ops, using: :gin
     t.index ["canonical_url"], name: "index_articles_on_canonical_url", unique: true, where: "(published IS TRUE)"
     t.index ["collection_id"], name: "index_articles_on_collection_id"
@@ -774,6 +777,7 @@ ActiveRecord::Schema.define(version: 2022_01_04_358315) do
 
   create_table "organizations", force: :cascade do |t|
     t.integer "articles_count", default: 0, null: false
+    t.integer "autoposts_count", default: 0, null: false
     t.string "bg_color_hex"
     t.string "company_size"
     t.datetime "created_at", null: false
@@ -1269,6 +1273,7 @@ ActiveRecord::Schema.define(version: 2022_01_04_358315) do
   create_table "users", force: :cascade do |t|
     t.string "apple_username"
     t.integer "articles_count", default: 0, null: false
+    t.integer "autoposts_count", default: 0, null: false
     t.integer "badge_achievements_count", default: 0, null: false
     t.bigint "blocked_by_count", default: 0, null: false
     t.bigint "blocking_others_count", default: 0, null: false

@@ -3,7 +3,6 @@
   <header class="crayons-page-header block">
     <h1 class="crayons-title"><%= t("views.dashboard.heading") %></h1>
     <%= render "actions_mobile" %>
-    <%= render "analytics" %>
   </header>
 
   <div class="crayons-layout__sidebar-left">
@@ -16,10 +15,10 @@
 
       <div class="flex flex-wrap px-3 gap-2">
         <% if params[:which] != "organization" %>
-          <% if @articles.any?(&:archived) %>
+          <% if @autoposts.any?(&:archived) %>
             <%= link_to t("views.dashboard.autoposts.archived"), "javascript:;", id: "toggleArchivedLink", class: "crayons-btn crayons-btn--outlined whitespace-nowrap" %>
           <% end %>
-          <% if @articles.any? %>
+          <% if @autoposts.any? %>
             <%= select_tag "dashboard_sort", options_for_select(sort_options, params[:sort]), "aria-label": t("views.dashboard.autoposts.option.aria_label"), class: "crayons-select w-auto" %>
           <% end %>
         <% end %>
@@ -35,20 +34,20 @@
       </div>
     </div>
 
-    <% if @articles.any? %>
+    <% if @autoposts.any? %>
       <%= javascript_packs_with_chunks_tag "dashboardDropdowns", defer: true %>
       <div class="crayons-card mb-6 mt-3">
-        <% @articles.each do |article| %>
+        <% @autoposts.each do |autopost| %>
           <% if params[:which] == "organization" %>
-            <%= render "dashboard_article_row", article: article, organization: article.organization, org_admin: true, manage_view: false %>
+            <%= render "dashboard_autopost_row", autopost: autopost, organization: autopost.organization, org_admin: true, manage_view: false %>
           <% else %>
-            <%= render "dashboard_article_row", article: article, organization: nil, org_admin: false, manage_view: false %>
+            <%= render "dashboard_autopost_row", autopost: autopost, organization: nil, org_admin: false, manage_view: false %>
           <% end %>
         <% end %>
       </div>
 
       <div class="mb-4 pl-3">
-        <%= paginate @articles, params: { i: nil } %>
+        <%= paginate @autoposts, params: { i: nil } %>
       </div>
 
     <% else %>
@@ -59,7 +58,7 @@
             <%= image_tag(image_url, class: "sloan mb-7", alt: "Mascot image") %>
           <% end %>
           <p class="mb-6"><%= t("views.dashboard.autoposts.empty.desc") %></p>
-          <p><a href="/new" class="crayons-btn crayons-btn--l"><%= t("views.dashboard.autoposts.empty.new") %></a></p>
+          <p><a href="/new-autopost" class="crayons-btn crayons-btn--l"><%= t("views.dashboard.autoposts.empty.new") %></a></p>
         </div>
       </div>
     <% end %>
