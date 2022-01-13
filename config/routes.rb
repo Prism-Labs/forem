@@ -277,6 +277,7 @@ Rails.application.routes.draw do
     get "/sponsors", to: "pages#sponsors"
     get "/search", to: "stories/articles_search#index"
     post "articles/preview", to: "articles#preview"
+    post "autoposts/preview", to: "autoposts#preview"
     post "comments/preview", to: "comments#preview"
 
     # Ghost writer page

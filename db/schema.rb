@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_01_04_358327) do
+ActiveRecord::Schema.define(version: 2022_01_04_358331) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
@@ -84,8 +84,6 @@ ActiveRecord::Schema.define(version: 2022_01_04_358327) do
     t.boolean "approved", default: false
     t.boolean "archived", default: false
     t.bigint "autopost_id"
-    t.integer "autopost_template_id"
-    t.bigint "autopost_templates_id"
     t.text "body_html"
     t.text "body_markdown"
     t.text "cached_organization"
@@ -156,7 +154,6 @@ ActiveRecord::Schema.define(version: 2022_01_04_358327) do
     t.string "video_state"
     t.string "video_thumbnail_url"
     t.index "user_id, title, digest(body_markdown, 'sha512'::text)", name: "index_articles_on_user_id_and_title_and_digest_body_markdown", unique: true
-    t.index ["autopost_templates_id"], name: "index_articles_on_autopost_templates_id"
     t.index ["cached_tag_list"], name: "index_articles_on_cached_tag_list", opclass: :gin_trgm_ops, using: :gin
     t.index ["canonical_url"], name: "index_articles_on_canonical_url", unique: true, where: "(published IS TRUE)"
     t.index ["collection_id"], name: "index_articles_on_collection_id"
@@ -191,7 +188,9 @@ ActiveRecord::Schema.define(version: 2022_01_04_358327) do
     t.boolean "approved", default: false
     t.boolean "archived"
     t.string "article_create_crontab", default: "0 0 * * *"
+    t.string "article_create_freq", default: "daily"
     t.string "article_update_crontab", default: "55 23 * * *"
+    t.string "article_update_freq", default: "daily"
     t.text "body_markdown"
     t.string "cached_organization"
     t.string "cached_tag_list"
@@ -205,6 +204,9 @@ ActiveRecord::Schema.define(version: 2022_01_04_358327) do
     t.datetime "edited_at"
     t.float "experience_level_rating"
     t.float "experience_level_rating_distribution"
+    t.datetime "last_article_created_at"
+    t.bigint "last_article_id"
+    t.datetime "last_article_updated_at"
     t.datetime "last_experience_level_rating_at"
     t.string "main_image"
     t.string "main_image_background_hex_color", default: "#dddddd"

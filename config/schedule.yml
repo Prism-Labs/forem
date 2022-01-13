@@ -144,15 +144,19 @@ capture_query_stats:
   description: "Collects Postgres query stats for PGHero (runs every 5 minutes)"
   cron: "*/5 * * * *"
   class: "CaptureQueryStatsWorker"
-dune_autopost_dynamic:
-  description: "Create a new post with dynamic links (runs hourly, trying to create a new post if not exists)"
-  cron: "0 * * * *"
-  class: "Everlist::DuneAutopostWorker"
-  args:
-    - false
-dune_autopost_static:
-  description: "Update the existing post to become a static post (runs just before midnight)"
-  cron: "30 23 * * *"
-  class: "Everlist::DuneAutopostWorker"
-  args:
-    - true
+# dune_autopost_dynamic:
+#   description: "Create a new post with dynamic links (runs hourly, trying to create a new post if not exists)"
+#   cron: "0 * * * *"
+#   class: "Everlist::DuneAutopostWorker"
+#   args:
+#     - false
+# dune_autopost_static:
+#   description: "Update the existing post to become a static post (runs just before midnight)"
+#   cron: "30 23 * * *"
+#   class: "Everlist::DuneAutopostWorker"
+#   args:
+#     - true
+autoposts:
+  description: "Create/Update autoposts (runs every minute)"
+  cron: "* * * * *"
+  class: "Everlist::AutopostsWorker"
