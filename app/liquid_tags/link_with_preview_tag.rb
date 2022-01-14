@@ -10,7 +10,7 @@ class LinkWithPreviewTag < LiquidTagBase
   include ActionView::Helpers::SanitizeHelper
 
   PARTIAL = "liquids/link_with_preview".freeze
-  DUNE_XYZ_URL_REGEXP = %r{\A(https|http)://dune\.xyz/embeds/.*\Z}
+  DUNE_XYZ_URL_REGEXP = %r{\Ahttps?://dune\.xyz/embeds/.*\Z}
 
   def initialize(_tag_name, url, _parse_context)
     super
