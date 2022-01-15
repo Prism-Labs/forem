@@ -50,13 +50,14 @@ module Everlist
         begin
           screenshot = download_and_save_image(oembed[:thumbnail_url])
           preview_url_text = "[#{dune_url}](#{dune_url})\n![#{dune_url}](#{screenshot})"
+          body_markdown = body_markdown.sub(dune_url_match, preview_url_text)
         rescue
           # Failed to download image?
           screenshot = nil
           preview_url_text = "[#{dune_url}](#{dune_url})"
         end
 
-        body_markdown = body_markdown.sub(dune_url_match, preview_url_text)
+        
         if main_image.nil?
           main_image = screenshot
         end
