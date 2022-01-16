@@ -60,7 +60,6 @@ module Everlist
           preview_url_text = "[#{dune_url}](#{dune_url})"
         end
 
-        
         if main_image.nil?
           main_image = screenshot
         end
@@ -93,7 +92,7 @@ module Everlist
 
     def update_last_article_for_autopost(autopost)
       existing = Article.find(autopost.last_article_id)
-      if existin.nil?
+      if existing.nil?
         autopost.last_article_id = nil
       else
         article_params = generate_article_params_json(autopost)
