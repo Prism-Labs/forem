@@ -92,7 +92,7 @@ module Everlist
     end
 
     def update_last_article_for_autopost(autopost)
-      existing = Article.get(autopost.last_article_id)
+      existing = Article.find(autopost.last_article_id)
       if existin.nil?
         autopost.last_article_id = nil
       else
