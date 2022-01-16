@@ -501,19 +501,11 @@ class Autopost < ApplicationRecord
     "#{Sterile.sluggerize(title)}-#{rand(100_000).to_s(26)}"
   end
 
-  def touch_actor_latest_autopost_updated_at(destroying: false)
-    return unless destroying || saved_changes.keys.intersection(%w[title cached_tag_list]).present?
-
-    user.touch(:latest_autopost_updated_at)
-    organization&.touch(:latest_autopost_updated_at)
-  end
-
-  def bust_cache(destroying: false)
+  def bust_cache(_destroying: false)
     cache_bust = EdgeCache::Bust.new
     cache_bust.call(path)
     cache_bust.call("#{path}?i=i")
     cache_bust.call("#{path}?preview=#{password}")
-    touch_actor_latest_autopost_updated_at(destroying: destroying)
   end
 
   def touch_collection
