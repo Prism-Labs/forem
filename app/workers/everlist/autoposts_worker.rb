@@ -17,12 +17,15 @@ module Everlist
       temp_file = Rails.root.join("tmp/dune_screenshot_#{SecureRandom.hex}.png")
       # download image file
       File.open(temp_file, "wb") do |file|
-        IO.copy_stream(URI.open(image_url), file)
-        # upload to our own file server
-        ArticleImageUploader.new.tap do |uploader|
-          uploader.store!(file)
+        begin
+          IO.copy_stream(URI.open(image_url), file)
+          # upload to our own file server
+          ArticleImageUploader.new.tap do |uploader|
+            uploader.store!(file)
+            return uploader.url.starts_with?("http") ? uploader.url : URL.url(uploader.url)
+          end
+        ensure
           file.detete # delete the temp file once done
-          return uploader.url.starts_with?("http") ? uploader.url : URL.url(uploader.url)
         end
       end
     end
