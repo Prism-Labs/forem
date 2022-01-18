@@ -82,7 +82,7 @@ module Everlist
       article_params[:title] = title
 
       # Create an article post with live preview link
-      new_article = Articles::Creator.call(@user, article_params)
+      new_article = Articles::Creator.call(@author, article_params)
 
       autopost.last_article_id = new_article.id
       autopost.last_article_created_at = autopost.last_article_updated_at = Time.now.utc
@@ -110,10 +110,10 @@ module Everlist
     def perform
       # create an article, author will be the admin
       # Get admin user
-      @user = Role.find_by(name: "super_admin").users.first
 
       # Check all "approved" autoposts for their cron job setting
       Autopost.approved.each do |autopost|
+        @author = autopost.user
         # check new article creation timer
         cron_parser = CronParser.new(autopost.article_create_crontab)
         prev_create = autopost.last_article_created_at.nil? ? autopost.published_at : autopost.last_article_created_at
