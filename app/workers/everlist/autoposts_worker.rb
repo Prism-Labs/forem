@@ -30,37 +30,54 @@ module Everlist
       end
     end
 
+    def generate_dune_screenshot(dune_url)
+      embedly_api = Embedly::API.new
+      obj = embedly_api.oembed url: dune_url
+      oembed = obj[0].marshal_dump
+
+      # TODO: consider moving the following thum.io settings to .env values
+      thum_io_key_id = "54756"
+      thum_io_key_value = "2434ae0edc63c7d7fa237e158995ae18"
+      thumbnail_urls = [
+        oembed[:thumbnail_url],
+        "https://image.thum.io/get/auth/#{thum_io_key_id}-#{thum_io_key_value}/#{dune_url}",
+      ]
+      thumbnail_counter = 0
+      # This thumbnail is provided by Dune.xyz and changes over time,
+      # So we want to download it and upload it to our own server and fixate it.
+      begin
+        thumbnail_counter += 1
+        screenshot = download_and_save_image(thumbnail_urls[thumbnail_counter - 1])
+      rescue
+        retry if thumbnail_counter < 2
+        # Failed to download image?
+        screenshot = nil
+      end
+      screenshot
+    end
+
     def generate_article_params_json(autopost)
       body_markdown = autopost.body_markdown
       main_image = autopost.main_image
 
-      dune_urls = body_markdown.scan DUNE_XYZ_EMBED_REGEXP
-      # Let's pull screenshot of the graph to be used as a main image
-      # first use Embedly API to pull Oembed data
-      # Also replace {% linkwithpreview dune_embed_url %} Liquid Tag Expressions
-      # with the static screenshots.
-      embedly_api = Embedly::API.new
+      if main_image.nil?
+        dune_urls = body_markdown.scan DUNE_XYZ_EMBED_REGEXP
+        # Let's pull screenshot of the graph to be used as a main image
+        # first use Embedly API to pull Oembed data
+        # Also replace {% linkwithpreview dune_embed_url %} Liquid Tag Expressions
+        # with the static screenshots.
 
-      dune_urls.each do |dune_url_match|
-        print "linkwithpreview #{dune_url_match}\n"
-        dune_url = DUNE_XYZ_URL_REGEXP.match(dune_url_match)[0]
-        print "dune_url=#{dune_url}\n"
-        obj = embedly_api.oembed url: dune_url
-        oembed = obj[0].marshal_dump
+        dune_urls.each do |dune_url_match|
+          print "linkwithpreview #{dune_url_match}\n"
+          dune_url = DUNE_XYZ_URL_REGEXP.match(dune_url_match)[0]
+          print "dune_url=#{dune_url}\n"
 
-        # This thumbnail is provided by Dune.xyz and changes over time,
-        # So we want to download it and upload it to our own server and fixate it.
-        begin
-          screenshot = download_and_save_image(oembed[:thumbnail_url])
-          preview_url_text = "[#{dune_url}](#{dune_url})\n![#{dune_url}](#{screenshot})"
-          body_markdown = body_markdown.sub(dune_url_match, preview_url_text)
-        rescue
-          # Failed to download image?
-          screenshot = nil
-          preview_url_text = "[#{dune_url}](#{dune_url})"
-        end
+          screenshot = generate_dune_screenshot(dune_url)
+          unless screenshot.nil?
+            preview_url_text = "[#{dune_url}](#{dune_url})\n![#{dune_url}](#{screenshot})"
+            body_markdown = body_markdown.sub(dune_url_match, preview_url_text)
+          end
 
-        if main_image.nil?
           main_image = screenshot
         end
       end
