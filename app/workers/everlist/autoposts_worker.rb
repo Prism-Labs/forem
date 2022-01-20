@@ -122,7 +122,7 @@ module Everlist
         if next_create <= Time.now
           print "Creating a new article #{autopost.last_article_id} from autopost #{autopost.id}"
           create_article_from_autopost(autopost)
-        elsif !autopost.last_article_id.nil?
+        elsif autopost.enable_update && !autopost.last_article_id.nil?
           # article had been created already, check update article timer
           cron_parser = CronParser.new(autopost.article_update_crontab)
           prev_update = autopost.last_article_updated_at.nil? ? autopost.last_article_created_at : autopost.last_article_updated_at

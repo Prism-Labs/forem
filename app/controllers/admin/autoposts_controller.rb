@@ -15,7 +15,7 @@ module Admin
                                  user_id
                                  published_at
                                  article_create_freq   article_update_freq
-                                 article_create_crontab   article_update_crontab
+                                 enable_update   article_create_crontab   article_update_crontab
                                 ].freeze
 
     def index
