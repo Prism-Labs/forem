@@ -84,8 +84,6 @@ ActiveRecord::Schema.define(version: 2022_01_20_358333) do
     t.boolean "approved", default: false
     t.boolean "archived", default: false
     t.bigint "autopost_id"
-    t.integer "autopost_template_id"
-    t.bigint "autopost_templates_id"
     t.text "body_html"
     t.text "body_markdown"
     t.text "cached_organization"
