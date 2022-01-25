@@ -50,7 +50,6 @@ class DuneQueryTag < LiquidTagBase
       # cache the result
       context.scopes.last["dune_query_#{@dune_query_id}"] = result
     else
-      print "accessing from cache"
       result = context.scopes.last["dune_query_#{@dune_query_id}"]
     end
 
