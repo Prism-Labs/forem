@@ -1,0 +1,96 @@
+require "embedly"
+require "uri"
+
+#
+# Liquid Tag to render screenshot of a link
+#
+# Usage: {% screenshot "url" %}
+
+class ScreenshotTag < LiquidTagBase
+  include ActionView::Helpers::SanitizeHelper
+
+  DUNE_XYZ_URL_REGEXP = %r{\Ahttps?://dune\.xyz/embeds/.*\Z}
+
+  def initialize(_tag_name, url, _parse_context)
+    super
+    @url = ActionController::Base.helpers.strip_tags(url).strip
+    validate_url
+  end
+
+  def download_and_save_image(image_url)
+    temp_file = Rails.root.join("tmp/screenshot_#{SecureRandom.hex}.png")
+    # download image file
+    File.open(temp_file, "wb") do |file|
+      IO.copy_stream(URI.open(image_url), file)
+      # upload to our own file server
+      ArticleImageUploader.new.tap do |uploader|
+        uploader.store!(file)
+        return uploader.url.starts_with?("http") ? uploader.url : URL.url(uploader.url)
+      end
+    ensure
+      File.delete(file) # delete the temp file once done
+    end
+  end
+
+  def generate_screenshot()
+    thumbnail_urls = []
+
+    begin
+      if DUNE_XYZ_URL_REGEXP.match @url
+        # Dune XYZ 's own screenshot API
+        # Seems to be dead now
+        # thumbnail_urls.append("https://dune.xyz/api/screenshot?url=#{@url}")
+      else
+        embedly_api = Embedly::API.new
+        obj = embedly_api.oembed url: @url
+        oembed = obj[0].marshal_dump
+        thumbnail_urls.append(oembed[:thumbnail_url])
+      end
+    rescue
+      # do nothing
+    end
+
+    # TODO: consider moving the following thum.io settings to .env values
+    thum_io_key_id = "54756"
+    thum_io_key_value = "2434ae0edc63c7d7fa237e158995ae18"
+    thumbnail_urls.append("https://image.thum.io/get/auth/#{thum_io_key_id}-#{thum_io_key_value}/#{@url}")
+
+    thumbnail_counter = 0
+    # This thumbnail is provided by Dune.xyz and changes over time,
+    # So we want to download it and upload it to our own server and fixate it.
+    begin
+      thumbnail_counter += 1
+      @screenshot = download_and_save_image(thumbnail_urls[thumbnail_counter - 1])
+    rescue Error => e
+      print thumbnail_urls[thumbnail_counter - 1]
+      print e
+      retry if thumbnail_counter < thumbnail_urls.length
+      # Failed to download image?
+      @screenshot = nil
+    end
+    @screenshot
+  end
+
+  def render(_context)
+    generate_screenshot
+
+    return %(<a href="#{@url}">#{@url}</a>) if @screenshot.nil?
+
+    %(<a href="#{@url}">#{@url}</a>\n<a href="#{@url}"><img src="#{@screenshot}" /></a>)
+  end
+
+  private
+
+  def validate_url
+    return true if valid_url?(@url.delete(" "))
+
+    raise StandardError, "Invalid URL: #{@url}"
+  end
+
+  def valid_url?(url)
+    url = URI.parse(url)
+    url.is_a?(URI::HTTP)
+  end
+end
+
+Liquid::Template.register_tag("screenshot", ScreenshotTag)
