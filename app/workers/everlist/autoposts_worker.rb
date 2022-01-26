@@ -10,100 +10,48 @@ module Everlist
                     on_conflict: :replace,
                     retry: false
 
-    DUNE_XYZ_URL_REGEXP = %r{https?://dune\.xyz/embeds/[0-9]+/[0-9]+/[0-9a-zA-Z\-]+}
-    DUNE_XYZ_EMBED_REGEXP = %r{\{%\s*linkwithpreview\s+https?://dune\.xyz/embeds/[0-9]+/[0-9]+/[0-9a-zA-Z\-]+\s*%\}}
-
-    def download_and_save_image(image_url)
-      temp_file = Rails.root.join("tmp/dune_screenshot_#{SecureRandom.hex}.png")
-      # download image file
-      File.open(temp_file, "wb") do |file|
-        begin
-          IO.copy_stream(URI.open(image_url), file)
-          # upload to our own file server
-          ArticleImageUploader.new.tap do |uploader|
-            uploader.store!(file)
-            return uploader.url.starts_with?("http") ? uploader.url : URL.url(uploader.url)
-          end
-        ensure
-          file.detete # delete the temp file once done
-        end
-      end
-    end
-
-    def generate_dune_screenshot(dune_url)
-      embedly_api = Embedly::API.new
-      obj = embedly_api.oembed url: dune_url
-      oembed = obj[0].marshal_dump
-
-      # TODO: consider moving the following thum.io settings to .env values
-      thum_io_key_id = "54756"
-      thum_io_key_value = "2434ae0edc63c7d7fa237e158995ae18"
-      thumbnail_urls = [
-        oembed[:thumbnail_url],
-        "https://image.thum.io/get/auth/#{thum_io_key_id}-#{thum_io_key_value}/#{dune_url}",
-      ]
-      thumbnail_counter = 0
-      # This thumbnail is provided by Dune.xyz and changes over time,
-      # So we want to download it and upload it to our own server and fixate it.
-      begin
-        thumbnail_counter += 1
-        screenshot = download_and_save_image(thumbnail_urls[thumbnail_counter - 1])
-      rescue
-        retry if thumbnail_counter < 2
-        # Failed to download image?
-        screenshot = nil
-      end
-      screenshot
-    end
-
     def generate_article_params_json(autopost)
-      body_markdown = autopost.body_markdown
-      main_image = autopost.main_image
-
-      if main_image.nil?
-        dune_urls = body_markdown.scan DUNE_XYZ_EMBED_REGEXP
-        # Let's pull screenshot of the graph to be used as a main image
-        # first use Embedly API to pull Oembed data
-        # Also replace {% linkwithpreview dune_embed_url %} Liquid Tag Expressions
-        # with the static screenshots.
-
-        dune_urls.each do |dune_url_match|
-          print "linkwithpreview #{dune_url_match}\n"
-          dune_url = DUNE_XYZ_URL_REGEXP.match(dune_url_match)[0]
-          print "dune_url=#{dune_url}\n"
-
-          screenshot = generate_dune_screenshot(dune_url)
-          unless screenshot.nil?
-            preview_url_text = "[#{dune_url}](#{dune_url})\n![#{dune_url}](#{screenshot})"
-            body_markdown = body_markdown.sub(dune_url_match, preview_url_text)
-          end
-
-          main_image = screenshot
-        end
-      end
-
       {
         tags: autopost.tags,
         description: autopost.description,
         series: autopost.series,
-        body_markdown: body_markdown,
-        published: true,
-        main_image: main_image,
+        body_markdown: autopost.body_markdown,
+        main_image: autopost.main_image,
         autopost_id: autopost.id
       }
+    end
+
+    def persist_with_html(article)
+      # Here we want to persist rendered HTML into autoposted article
+      # so that the dynamic data pulled using Liquid Tag won't be changed
+      # in the future.
+      article.body_markdown = article.processed_html
+      article.published = true
+
+      if article.main_image.nil?
+        img_url_regexp = %r{<img .*src=\"([^\"]+)\"}
+        img_match = img_url_regexp.match(article.processed_html)
+        unless img_match.nil?
+          article.main_image = img_match[1]
+        end
+      end
+      article.save
     end
 
     def create_article_from_autopost(autopost)
       title = "#{autopost.title} #{Time.zone.today.strftime('%m/%d/%y')}"
       article_params = generate_article_params_json(autopost)
       article_params[:title] = title
+      article_params[:published] = false
 
       # Create an article post with live preview link
       new_article = Articles::Creator.call(@author, article_params)
 
       autopost.last_article_id = new_article.id
       autopost.last_article_created_at = autopost.last_article_updated_at = Time.now.utc
-      autopost.save
+      autopost.save # this will render Markdown
+
+      persist_with_html(new_article)
       new_article
     end
 
@@ -111,13 +59,14 @@ module Everlist
       existing = Article.find(autopost.last_article_id)
       if existing.nil?
         autopost.last_article_id = nil
-      else
+      elsif exist.published
         article_params = generate_article_params_json(autopost)
         # update article text with static previews
         existing.main_image = article_params[:main_image]
         existing.body_markdown = article_params[:body_markdown]
-        existing.save
+        existing.save # this will render Markdown
 
+        persist_with_html(existing)
         autopost.last_article_updated_at = Time.now.utc
       end
       autopost.save

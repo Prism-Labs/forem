@@ -74,9 +74,9 @@ class ScreenshotTag < LiquidTagBase
   def render(_context)
     generate_screenshot
 
-    return %(<a href="#{@url}">#{@url}</a>) if @screenshot.nil?
+    return %("<a href="#{@url}">#{@url}</a>") if @screenshot.nil?
 
-    %(<a href="#{@url}">#{@url}</a>\n<a href="#{@url}"><img src="#{@screenshot}" /></a>)
+    %(<a href="#{@url}"><img src="#{@screenshot}" /></a>)
   end
 
   private
