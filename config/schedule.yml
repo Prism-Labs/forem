@@ -157,6 +157,6 @@ capture_query_stats:
 #   args:
 #     - true
 autoposts:
-  description: "Create/Update autoposts (runs every minute)"
-  cron: "* * * * *"
+  description: "Create/Update autoposts (runs every 5 minutes)"
+  cron: "*/5 * * * *"
   class: "Everlist::AutopostsWorker"

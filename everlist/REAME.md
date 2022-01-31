@@ -1,5 +1,19 @@
 # Additions for [Everlist](https://everlist.org)
 
+## Install (Self-host)
+
+Here are some guideline: https://forem.dev/akhil/self-hosting-forem-on-digital-ocean-servers-4f0m
+
+## Running the app
+
+```sh
+foreman start
+
+# or 
+
+nohup foreman start > log/foreman.log 2>&1 &
+```
+
 ## Code Management
 
 - forked from `forem/forem.git`, can be updated by fetching from upstream.
