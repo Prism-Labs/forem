@@ -4,9 +4,14 @@ class NullTag < Liquid::Block
   end
 end
 
+# %w[
+#   assign break capture case cycle decrement echo for
+#   if ifchanged include increment render tablerow unless
+# ].each do |tag|
+#   Liquid::Template.register_tag(tag, NullTag)
+# end
 %w[
-  assign break capture case cycle decrement echo for
-  if ifchanged include increment render tablerow unless
+  cycle ifchanged include render tablerow
 ].each do |tag|
   Liquid::Template.register_tag(tag, NullTag)
 end
