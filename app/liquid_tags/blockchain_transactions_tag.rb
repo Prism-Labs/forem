@@ -6,9 +6,7 @@
 #
 # Example: {% blockchain_transactions network="ethereum", address="0x94c7c5f905fc888ddc48c51a90b68ddec44f8d8c", column="amount" %}
 #
-class BlockchainTransactionsTag < LiquidTagBase
-  include ActionView::Helpers::SanitizeHelper
-  include ActionView::Helpers::NumberHelper
+class BlockchainTransactionsTag < CustomLiquidTagBase
 
   def initialize(_tag_name, params, _parse_context)
     super
@@ -110,34 +108,6 @@ class BlockchainTransactionsTag < LiquidTagBase
     render_zapper_fi_result(context)
   rescue StandardError => e
     print e
-  end
-
-  private
-
-  def __split_params(params)
-    params.split(",").map(&:strip)
-  end
-
-  def __split_param_single(param)
-    param.split("=").map(&:strip)
-  end
-
-  def parse_value_with_context(str, context)
-    if str.start_with?('"') && str.end_with?('"')
-      str.delete_prefix('"').delete_suffix('"')
-    elsif str.start_with?("'") && str.end_with?("'")
-      str.delete_prefix("'").delete_suffix("'")
-    elsif context.present?
-      v = context.find_variable(str)
-
-      return v if v.present?
-
-      str
-    else
-      str
-    end
-  rescue StandardError
-    str
   end
 end
 

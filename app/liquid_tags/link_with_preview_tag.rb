@@ -6,8 +6,7 @@ require "uri"
 #
 # Usage: {% linkwithpreview "url" %}
 
-class LinkWithPreviewTag < LiquidTagBase
-  include ActionView::Helpers::SanitizeHelper
+class LinkWithPreviewTag < CustomLiquidTagBase
 
   PARTIAL = "liquids/link_with_preview".freeze
   DUNE_XYZ_URL_REGEXP = %r{\Ahttps?://dune\.xyz/embeds/.*\Z}
@@ -49,38 +48,6 @@ class LinkWithPreviewTag < LiquidTagBase
     obj = embedly_api.oembed url: @url
     obj[0].marshal_dump
   end
-
-  def validate_url
-    raise StandardError, "Empty URL" if @url.blank?
-
-    return true if valid_url?(@url.delete(" "))
-
-    raise StandardError, "Invalid URL: #{@url}"
-  end
-
-  def valid_url?(url)
-    url = URI.parse(url)
-    url.is_a?(URI::HTTP)
-  end
-
-  def parse_value_with_context(str, context)
-    if str.start_with?('"') && str.end_with?('"')
-      str.delete_prefix('"').delete_suffix('"')
-    elsif str.start_with?("'") && str.end_with?("'")
-      str.delete_prefix("'").delete_suffix("'")
-    elsif context.present?
-      v = context.find_variable(str)
-
-      return v if v.present?
-
-      str
-    else
-      str
-    end
-  rescue StandardError
-    str
-  end
-
 end
 
 Liquid::Template.register_tag("linkwithpreview", LinkWithPreviewTag)

@@ -6,15 +6,13 @@ require "uri"
 #
 # Usage: {% screenshot "url" %}
 
-class ScreenshotTag < LiquidTagBase
-  include ActionView::Helpers::SanitizeHelper
+class ScreenshotTag < CustomLiquidTagBase
 
   DUNE_XYZ_URL_REGEXP = %r{\Ahttps?://dune\.xyz/embeds/.*\Z}
 
   def initialize(_tag_name, url, _parse_context)
     super
-    @url = ActionController::Base.helpers.strip_tags(url).strip
-    validate_url
+    @url_arg = url.strip
   end
 
   def download_and_save_image(image_url)
@@ -72,24 +70,14 @@ class ScreenshotTag < LiquidTagBase
   end
 
   def render(_context)
+    @url = parse_value_with_context(@url_arg, context).strip
+    @url = ActionController::Base.helpers.strip_tags(@url)
+
     generate_screenshot
 
     return %("<a href="#{@url}">#{@url}</a>") if @screenshot.nil?
 
     %(<a href="#{@url}"><img src="#{@screenshot}" /></a>)
-  end
-
-  private
-
-  def validate_url
-    return true if valid_url?(@url.delete(" "))
-
-    raise StandardError, "Invalid URL: #{@url}"
-  end
-
-  def valid_url?(url)
-    url = URI.parse(url)
-    url.is_a?(URI::HTTP)
   end
 end
 

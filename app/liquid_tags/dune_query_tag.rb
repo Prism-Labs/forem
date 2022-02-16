@@ -4,10 +4,7 @@
 # Usage: {% dune_query "7180", column=median_gas_price, row=0 %}
 #        {{dune_query_7180.0.var_name}}
 #
-class DuneQueryTag < LiquidTagBase
-  include ActionView::Helpers::SanitizeHelper
-  include ActionView::Helpers::NumberHelper
-
+class DuneQueryTag < CustomLiquidTagBase
   def initialize(_tag_name, params, _parse_context)
     super
     args = __split_params(params)
@@ -74,34 +71,6 @@ class DuneQueryTag < LiquidTagBase
     else
       result[@row]["data"][@column].to_s
     end
-  end
-
-  private
-
-  def __split_params(params)
-    params.split(",").map(&:strip)
-  end
-
-  def __split_param_single(param)
-    param.split("=").map(&:strip)
-  end
-
-  def parse_value_with_context(str, context)
-    if str.start_with?('"') && str.end_with?('"')
-      str.delete_prefix('"').delete_suffix('"')
-    elsif str.start_with?("'") && str.end_with?("'")
-      str.delete_prefix("'").delete_suffix("'")
-    elsif context.present?
-      v = context.find_variable(str)
-
-      return v if v.present?
-
-      str
-    else
-      str
-    end
-  rescue StandardError
-    str
   end
 end
 
