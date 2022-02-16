@@ -12,8 +12,8 @@ class DuneQueryTag < LiquidTagBase
     super
     args = __split_params(params)
 
-    @dune_query_id = args[0]
-    @column = args[1]
+    @dune_query_id = __strip_quote(args[0])
+    @column = __strip_quote(args[1])
     @row = 0
     @formatter = nil
 
@@ -21,22 +21,25 @@ class DuneQueryTag < LiquidTagBase
       param = __split_param_single(p)
       case param[0]
       when "row"
-        @row = param[1].to_i
+        @row = __strip_quote(param[1]).to_i
       when "column"
-        @column = param[1]
+        @column = __strip_quote(param[1])
       when "formatter"
-        @formatter = param[1]
+        @formatter = __strip_quote(param[1])
       end
     end
   end
 
   def get_dune_query_result
     dune_url = "https://dune.xyz/queries/#{@dune_query_id}"
+    puts "DUNE Query : #{dune_url}"
+
     script = "#{__dir__}/../../everlist/duneanalytics/client.py"
     output = %x(python #{script} --username #{ENV["DUNE_USERNAME"]} --password #{ENV["DUNE_PASSWORD"]} #{dune_url})
     result = JSON.parse(output)
 
     if result.key?(:error)
+      print result
       return
     end
 
@@ -45,12 +48,13 @@ class DuneQueryTag < LiquidTagBase
 
   def render(context)
     # we set the varible, which can be used, like {{dune_query_0000.0.data.median_gas_price}}
-    if context.scopes.last["dune_query_#{@dune_query_id}"].nil?
+    cache_key = "dune_query_#{@dune_query_id}"
+    if context.scopes.last[cache_key].nil?
       result = get_dune_query_result
       # cache the result
-      context.scopes.last["dune_query_#{@dune_query_id}"] = result
+      context.scopes.last[cache_key] = result
     else
-      result = context.scopes.last["dune_query_#{@dune_query_id}"]
+      result = context.scopes.last[cache_key]
     end
 
     case @formatter
@@ -75,6 +79,16 @@ class DuneQueryTag < LiquidTagBase
 
   def __split_param_single(param)
     param.split("=").map(&:strip)
+  end
+
+  def __strip_quote(str)
+    if str.start_with?('"') && str.end_with?('"')
+      str.delete_prefix('"').delete_suffix('"')
+    elsif str.start_with?("'") && str.end_with?("'")
+      str.delete_prefix("'").delete_suffix("'")
+    else
+      str
+    end
   end
 end
 
