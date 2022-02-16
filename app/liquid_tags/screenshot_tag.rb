@@ -69,7 +69,7 @@ class ScreenshotTag < CustomLiquidTagBase
     @screenshot
   end
 
-  def render(_context)
+  def render(context)
     @url = parse_value_with_context(@url_arg, context).strip
     @url = ActionController::Base.helpers.strip_tags(@url)
 
@@ -78,6 +78,8 @@ class ScreenshotTag < CustomLiquidTagBase
     return %("<a href="#{@url}">#{@url}</a>") if @screenshot.nil?
 
     %(<a href="#{@url}"><img src="#{@screenshot}" /></a>)
+  rescue StandardError => e
+    print e
   end
 end
 
