@@ -16,28 +16,28 @@ class BlockchainTransactionsTag < LiquidTagBase
 
     @zapper_fi_api_key = ENV.fetch("ZAPPER_FI_API_KEY", "96e0cc51-a62e-42ca-acee-910ea7d2a241")
 
-    @api = "zapper.fi"
-    @network = "ethereum"
-    @row = 0
-    @formatter = nil
-    @address = nil
-    @column = nil
+    @api_arg = nil
+    @network_arg = nil
+    @row_arg = nil
+    @formatter_arg = nil
+    @address_arg = nil
+    @column_arg = nil
 
     args.each do |p|
       param = __split_param_single(p)
       case param[0]
       when "api"
-        @api = __strip_quote(param[1])
+        @api_arg = param[1]
       when "network"
-        @network = __strip_quote(param[1])
+        @network_arg = param[1]
       when "address"
-        @address = __strip_quote(param[1])
+        @address_arg = param[1]
       when "row"
-        @row = __strip_quote(param[1]).to_i
+        @row_arg = param[1].to_i
       when "column"
-        @column = __strip_quote(param[1])
+        @column_arg = param[1]
       when "formatter"
-        @formatter = __strip_quote(param[1])
+        @formatter_arg = param[1]
       end
     end
   end
@@ -97,6 +97,13 @@ class BlockchainTransactionsTag < LiquidTagBase
   end
 
   def render(context)
+    @api = @api_arg.present? ? parse_value_with_context(@api_arg, context) : "zapper.fi"
+    @network = @network_arg.present? ? parse_value_with_context(@network_arg, context) : "ethereum"
+    @row = @row_arg.present? ? parse_value_with_context(@row_arg, context).to_i : 0
+    @formatter = @formatter_arg.present? ? parse_value_with_context(@formatter_arg, context) : nil
+    @address = @address_arg.present? ? parse_value_with_context(@address_arg, context) : nil
+    @column = @column_arg.present? ? parse_value_with_context(@column_arg, context) : nil
+
     # for now, only supports zapper.fi API
     return "" unless @api == "zapper.fi"
 
@@ -115,14 +122,18 @@ class BlockchainTransactionsTag < LiquidTagBase
     param.split("=").map(&:strip)
   end
 
-  def __strip_quote(str)
+  def parse_value_with_context(str, context)
     if str.start_with?('"') && str.end_with?('"')
       str.delete_prefix('"').delete_suffix('"')
     elsif str.start_with?("'") && str.end_with?("'")
       str.delete_prefix("'").delete_suffix("'")
+    elsif context.present? && context[str].present?
+      context.find_variable(str)
     else
       str
     end
+  rescue StandardError
+    str
   end
 end
 

@@ -14,7 +14,12 @@ class LinkWithPreviewTag < LiquidTagBase
 
   def initialize(_tag_name, url, _parse_context)
     super
-    @url = ActionController::Base.helpers.strip_tags(url).strip
+    @url_arg = url.strip
+  end
+
+  def render(context)
+    @url = parse_value_with_context(@url_arg, context).strip
+    @url = ActionController::Base.helpers.strip_tags(@url)
 
     if DUNE_XYZ_URL_REGEXP.match @url
       @oembed = {
@@ -25,13 +30,13 @@ class LinkWithPreviewTag < LiquidTagBase
     else
       @oembed = parse_url
     end
-  end
 
-  def render(_context)
     ApplicationController.render(
       partial: PARTIAL,
       locals: @oembed,
     )
+  rescue StandardError => e
+    print e
   end
 
   private
@@ -46,6 +51,8 @@ class LinkWithPreviewTag < LiquidTagBase
   end
 
   def validate_url
+    raise StandardError, "Empty URL" if @url.blank?
+
     return true if valid_url?(@url.delete(" "))
 
     raise StandardError, "Invalid URL: #{@url}"
@@ -55,6 +62,21 @@ class LinkWithPreviewTag < LiquidTagBase
     url = URI.parse(url)
     url.is_a?(URI::HTTP)
   end
+
+  def parse_value_with_context(str, context)
+    if str.start_with?('"') && str.end_with?('"')
+      str.delete_prefix('"').delete_suffix('"')
+    elsif str.start_with?("'") && str.end_with?("'")
+      str.delete_prefix("'").delete_suffix("'")
+    elsif context.present? && context[str].present?
+      context.find_variable(str)
+    else
+      str
+    end
+  rescue StandardError
+    str
+  end
+
 end
 
 Liquid::Template.register_tag("linkwithpreview", LinkWithPreviewTag)

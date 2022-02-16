@@ -12,26 +12,26 @@ class DuneQueryTag < LiquidTagBase
     super
     args = __split_params(params)
 
-    @dune_query_id = __strip_quote(args[0])
-    @column = __strip_quote(args[1])
-    @row = 0
-    @formatter = nil
+    @query_id_arg = args[0]
+    @column_arg = args[1]
+    @row_arg = nil
+    @formatter_arg = nil
 
     args.each do |p|
       param = __split_param_single(p)
       case param[0]
       when "row"
-        @row = __strip_quote(param[1]).to_i
+        @row_arg = param[1]
       when "column"
-        @column = __strip_quote(param[1])
+        @column_arg = param[1]
       when "formatter"
-        @formatter = __strip_quote(param[1])
+        @formatter_arg = param[1]
       end
     end
   end
 
   def get_dune_query_result
-    dune_url = "https://dune.xyz/queries/#{@dune_query_id}"
+    dune_url = "https://dune.xyz/queries/#{@query_id}"
     puts "DUNE Query : #{dune_url}"
 
     script = "#{__dir__}/../../everlist/duneanalytics/client.py"
@@ -47,8 +47,13 @@ class DuneQueryTag < LiquidTagBase
   end
 
   def render(context)
+    @query_id = @query_id_arg.present? ? parse_value_with_context(@query_id_arg, context) : nil
+    @row = @row_arg.present? ? parse_value_with_context(@row_arg, context).to_i : 0
+    @formatter = @formatter_arg.present? ? parse_value_with_context(@formatter_arg, context) : nil
+    @column = @column_arg.present? ? parse_value_with_context(@column_arg, context) : nil
+
     # we set the varible, which can be used, like {{dune_query_0000.0.data.median_gas_price}}
-    cache_key = "dune_query_#{@dune_query_id}"
+    cache_key = "dune_query_#{@query_id}"
     if context.scopes.last[cache_key].nil?
       result = get_dune_query_result
       # cache the result
@@ -81,14 +86,18 @@ class DuneQueryTag < LiquidTagBase
     param.split("=").map(&:strip)
   end
 
-  def __strip_quote(str)
+  def parse_value_with_context(str, context)
     if str.start_with?('"') && str.end_with?('"')
       str.delete_prefix('"').delete_suffix('"')
     elsif str.start_with?("'") && str.end_with?("'")
       str.delete_prefix("'").delete_suffix("'")
+    elsif context.present? && context[str].present?
+      context.find_variable(str)
     else
       str
     end
+  rescue StandardError
+    str
   end
 end
 
