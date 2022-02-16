@@ -33,7 +33,7 @@ class BlockchainTransactionsTag < LiquidTagBase
       when "address"
         @address_arg = param[1]
       when "row"
-        @row_arg = param[1].to_i
+        @row_arg = param[1]
       when "column"
         @column_arg = param[1]
       when "formatter"
