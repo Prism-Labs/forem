@@ -12,8 +12,8 @@ class DuneQueryTag < LiquidTagBase
     super
     args = __split_params(params)
 
-    @query_id_arg = args[0]
-    @column_arg = args[1]
+    @query_id_arg = args[0].strip
+    @column_arg = args[1].strip
     @row_arg = nil
     @formatter_arg = nil
 
@@ -91,8 +91,12 @@ class DuneQueryTag < LiquidTagBase
       str.delete_prefix('"').delete_suffix('"')
     elsif str.start_with?("'") && str.end_with?("'")
       str.delete_prefix("'").delete_suffix("'")
-    elsif context.present? && context[str].present?
-      context.find_variable(str)
+    elsif context.present?
+      v = context.find_variable(str)
+
+      return v if v.present?
+
+      str
     else
       str
     end

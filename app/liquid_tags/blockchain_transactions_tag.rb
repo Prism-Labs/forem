@@ -127,8 +127,12 @@ class BlockchainTransactionsTag < LiquidTagBase
       str.delete_prefix('"').delete_suffix('"')
     elsif str.start_with?("'") && str.end_with?("'")
       str.delete_prefix("'").delete_suffix("'")
-    elsif context.present? && context[str].present?
-      context.find_variable(str)
+    elsif context.present?
+      v = context.find_variable(str)
+
+      return v if v.present?
+
+      str
     else
       str
     end
