@@ -9,6 +9,7 @@ require "uri"
 class ScreenshotTag < CustomLiquidTagBase
 
   DUNE_XYZ_URL_REGEXP = %r{\Ahttps?://dune\.xyz/embeds/.*\Z}
+  LOOKSRARE_ORG_URL_REGEXP = %r{\Ahttps?://looksrare\.org/.*\Z}
 
   def initialize(_tag_name, url, _parse_context)
     super
@@ -30,21 +31,24 @@ class ScreenshotTag < CustomLiquidTagBase
     end
   end
 
-  def generate_screenshot()
+  def exclude_from_embedly?
+    # - Dune XYZ 's own screenshot API seems to be dead now
+    # - Looksrare.org returns invalid Thumbnail URL in OEmbed data
+    DUNE_XYZ_URL_REGEXP.match(@url) || LOOKSRARE_ORG_URL_REGEXP.match(@url)
+  end
+
+  def generate_screenshot
+    puts "Generating screenshot of #{@url}"
     thumbnail_urls = []
 
     begin
-      if DUNE_XYZ_URL_REGEXP.match @url
-        # Dune XYZ 's own screenshot API
-        # Seems to be dead now
-        # thumbnail_urls.append("https://dune.xyz/api/screenshot?url=#{@url}")
-      else
+      unless exclude_from_embedly?
         embedly_api = Embedly::API.new
         obj = embedly_api.oembed url: @url
         oembed = obj[0].marshal_dump
         thumbnail_urls.append(oembed[:thumbnail_url])
       end
-    rescue
+    rescue StandardError
       # do nothing
     end
 
@@ -59,9 +63,7 @@ class ScreenshotTag < CustomLiquidTagBase
     begin
       thumbnail_counter += 1
       @screenshot = download_and_save_image(thumbnail_urls[thumbnail_counter - 1])
-    rescue Error => e
-      print thumbnail_urls[thumbnail_counter - 1]
-      print e
+    rescue StandardError
       retry if thumbnail_counter < thumbnail_urls.length
       # Failed to download image?
       @screenshot = nil

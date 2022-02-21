@@ -6,14 +6,18 @@ require "uri"
 #
 # Usage: {% linkwithpreview "url" %}
 
-class LinkWithPreviewTag < CustomLiquidTagBase
+class LinkWithPreviewTag < ScreenshotTag
 
   PARTIAL = "liquids/link_with_preview".freeze
-  DUNE_XYZ_URL_REGEXP = %r{\Ahttps?://dune\.xyz/embeds/.*\Z}
 
   def initialize(_tag_name, url, _parse_context)
     super
     @url_arg = url.strip
+  end
+
+  def needs_static_screenshot?
+    # - Looksrare.org returns invalid Thumbnail URL in OEmbed data
+    LOOKSRARE_ORG_URL_REGEXP.match(@url)
   end
 
   def render(context)
@@ -28,6 +32,12 @@ class LinkWithPreviewTag < CustomLiquidTagBase
       }
     else
       @oembed = parse_url
+
+      if needs_static_screenshot?
+        generate_screenshot
+        puts "Generated screenshot #{@screenshot}"
+        @oembed[:thumbnail_url] = @screenshot
+      end
     end
 
     ApplicationController.render(
