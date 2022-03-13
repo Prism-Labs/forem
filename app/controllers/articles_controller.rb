@@ -82,6 +82,9 @@ class ArticlesController < ApplicationController
       parsed = FrontMatterParser::Parser.new(:md).call(fixed_body_markdown)
       parsed_markdown = MarkdownProcessor::Parser.new(parsed.content, source: Article.new, user: current_user)
       processed_html = parsed_markdown.finalize
+
+      # modify links to open in a new tab
+      processed_html = processed_html.gsub(/<a([^>]*)(?:target="\w+")?([^>]*)>/, "<a\\1\\2 target=\"_blank\">")
     rescue StandardError => e
       @article = Article.new(body_markdown: params[:article_body])
       @article.errors.add(:base, ErrorMessages::Clean.call(e.message))

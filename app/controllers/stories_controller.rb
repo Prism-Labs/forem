@@ -231,6 +231,9 @@ class StoriesController < ApplicationController
     redirect_if_show_view_param
     return if performed?
 
+    # modify links to open in a new tab
+    @article.processed_html = @article.processed_html.gsub(/<a([^>]*)(?:target="\w+")?([^>]*)>/, "<a\\1\\2 target=\"_blank\">")
+
     if params[:view] == "modal"
       render template: "articles/show_on_modal", layout: false
     else
