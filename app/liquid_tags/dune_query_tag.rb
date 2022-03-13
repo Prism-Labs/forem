@@ -1,7 +1,8 @@
 #
 # Liquid Tag to render a simple data we get from Dune Query
 #
-# Usage: {% dune_query "7180", column=median_gas_price, row=0 %}
+# Usage: {% dune_query "7180", column="median_gas_price", row=0 %}
+#        {% dune_query "455874", query_param="NFT%20Contract=0xBD4455dA5929D5639EE098ABFaa3241e9ae111Af", column="wallet_os", row=0 %}
 #        {{dune_query_7180.0.var_name}}
 #
 class DuneQueryTag < CustomLiquidTagBase
@@ -13,6 +14,7 @@ class DuneQueryTag < CustomLiquidTagBase
     @column_arg = args[1].strip
     @row_arg = nil
     @formatter_arg = nil
+    @query_param = nil
 
     args.each do |p|
       param = __split_param_single(p)
@@ -23,12 +25,17 @@ class DuneQueryTag < CustomLiquidTagBase
         @column_arg = param[1]
       when "formatter"
         @formatter_arg = param[1]
+      when "query_param"
+        @query_param = param[1]
       end
     end
   end
 
   def get_dune_query_result
     dune_url = "https://dune.xyz/queries/#{@query_id}"
+    if @query_param.present?
+      dune_url = "#{dune_url}?#{@query_param}"
+    end
     puts "DUNE Query : #{dune_url}"
 
     script = "#{__dir__}/../../everlist/duneanalytics/client.py"
@@ -48,6 +55,7 @@ class DuneQueryTag < CustomLiquidTagBase
     @row = @row_arg.present? ? parse_value_with_context(@row_arg, context).to_i : 0
     @formatter = @formatter_arg.present? ? parse_value_with_context(@formatter_arg, context) : nil
     @column = @column_arg.present? ? parse_value_with_context(@column_arg, context) : nil
+    @query_param = @query_param.present? ? parse_value_with_context(@query_param, context) : nil
 
     # we set the varible, which can be used, like {{dune_query_0000.0.data.median_gas_price}}
     cache_key = "dune_query_#{@query_id}"

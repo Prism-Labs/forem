@@ -3,6 +3,7 @@ import sys
 import re
 import argparse
 import json
+from urllib.parse import urlparse, parse_qsl
 
 QUERY_REGEX = r"https://duneanalytics.com/queries/([0-9]+)"
 QUERY_REGEX2 = r"https://dune.xyz/queries/([0-9]+)"
@@ -36,6 +37,14 @@ def main(args):
 
     (url_type, query_id) = url_validity
 
+    # parse query params from url
+    query = parse_qsl(urlparse(url).query)
+    parameters = None
+    if query is not None and len(query) > 0:
+        parameters = list()
+        for p in query:
+            parameters.append({ "key": p[0], "type": "text", "value": p[1] })
+
     # initialize client
     dune = DuneAnalytics(username, password, raise_exception=True)
 
@@ -45,7 +54,7 @@ def main(args):
         # fetch token
         dune.fetch_auth_token()
         # fetch query result id using query id
-        result_id = dune.query_result_id(query_id=query_id)
+        result_id = dune.query_result_id(query_id=query_id, parameters=parameters)
         # fetch query result
         data = dune.query_result(result_id)
         print(json.dumps(data, indent=4))

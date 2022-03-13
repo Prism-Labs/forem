@@ -28,7 +28,7 @@ class CustomLiquidTagBase < LiquidTagBase
   end
 
   def __split_param_single(param)
-    param.split("=").map(&:strip)
+    param.split("=", 2).map(&:strip)
   end
 
   def parse_value_with_context(str, context)
