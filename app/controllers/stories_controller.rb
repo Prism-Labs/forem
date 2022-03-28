@@ -211,7 +211,7 @@ class StoriesController < ApplicationController
     #    2. `/admin/customization/profile_fields`, add profile_field_group and a new profile_field,
     #        named "Ethereum Address" and this field would be accessible by `user.profile.ethereum_address`
     eth_address = @profile.ethereum_address
-    if eth_address.strip.empty?
+    if eth_address.blank? || eth_address.strip.empty?
       @balances = @balance_nfts == @transactions = []
     else
       begin
