@@ -205,7 +205,12 @@ class StoriesController < ApplicationController
 
     # Let's the the Crypto account details for the user if he has one
     # if the user has the ethereum address set
-    eth_address = "0x5ac7983a4faafbee0150a8bf8100960887f1b102"
+    # 
+    # TODO: Enable custom profile_field named "Ethereum Address" 
+    #    1. `/admin/feature_flags/features`, add and enable feature named "profile_admin"
+    #    2. `/admin/customization/profile_fields`, add profile_field_group and a new profile_field,
+    #        named "Ethereum Address" and this field would be accessible by `user.profile.ethereum_address`
+    eth_address = @profile.ethereum_address
     if eth_address.strip.empty?
       @balances = @balance_nfts == @transactions = []
     else
