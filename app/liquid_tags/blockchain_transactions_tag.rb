@@ -12,8 +12,6 @@ class BlockchainTransactionsTag < CustomLiquidTagBase
     super
     args = __split_params(params)
 
-    @zapper_fi_api_key = ENV.fetch("ZAPPER_FI_API_KEY", "96e0cc51-a62e-42ca-acee-910ea7d2a241")
-
     @api_arg = nil
     @network_arg = nil
     @row_arg = nil
@@ -40,26 +38,6 @@ class BlockchainTransactionsTag < CustomLiquidTagBase
     end
   end
 
-  def call_zapper_fi_api
-    if @zapper_fi_api_key.blank?
-      return
-    end
-
-    api_url = "https://api.zapper.fi/v1/transactions?address=#{@address}&addresses[]=#{@address}&network=#{@network}&api_key=#{@zapper_fi_api_key}"
-    puts "Calling ZAPPER FI API - #{api_url}"
-
-    response = HTTParty.get(api_url, format: :plain)
-
-    result = JSON.parse response
-
-    if result.key?("statusCode") && result["statusCode"] != 200
-      puts result["message"]
-      return
-    end
-
-    result["data"]
-  end
-
   def render_zapper_fi_result(context)
     if @network.blank? || @address.blank?
       puts "Missing network and address parameters"
@@ -71,7 +49,8 @@ class BlockchainTransactionsTag < CustomLiquidTagBase
     if context.scopes.last.key?(cache_key)
       result = context.scopes.last[cache_key]
     else
-      result = call_zapper_fi_api
+      zapper_client = Zapper::ZapperClient.new
+      result = zapper_client.get_transactions(@address, [@address], @network)
       # cache the result
       context.scopes.last[cache_key] = result
     end

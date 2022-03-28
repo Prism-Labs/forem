@@ -1,0 +1,43 @@
+<% cache("user-profile-holdings-#{@user.id}", expires_in: 15.minutes) do %>
+  <div class="profile-wallets-card crayons-card crayons-card--secondary flex flex-col">
+    <header class="crayons-card__header">
+      <h3 class="crayons-subtitle-3">
+        <%= t("views.users.side.holdings") %></h3>
+      </h3>
+    </header>
+    <div class="crayons-card__body py-4 px-3">
+      <% unless @wallets.blank? %>
+        <% @wallets.each do |wallet| %>
+          <% wallet["tokens"].each do |token| %>
+            <a href="#">
+              <div class="profile-wallet-token flex justify-between items-center" role="button">
+                <div class="flex items-center">
+                  <div class="_1nv4amt19" style="min-width: 48px; max-width: 48px;">
+                    <div style="transition: all 0.2s ease-in-out 0s;">
+                      <div class="_1nv4amtfk _1nv4amt1sq">
+                        <div class="_1nv4amt2ke _1nv4amt2gn">
+                          <img src="<%=token["tokenImageUrl"]%>" style="width: 32px; height: 32px; border-radius: 100%;">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="_1nv4amt2a0 _1nv4amt27v"><%=token["symbol"]%>
+                    <div class="_1nv4amt2f8 _1nv4amt2a4 _1nv4amt280"><%=number_to_currency(token["price"].to_f)%></div>
+                  </div>
+                </div>
+                <div class="flex items-center">
+                  <div class="_1nv4amt2b8 _1nv4amt2a0 _1nv4amt27v"><%=number_to_currency(token["balanceUSD"].to_f) %>
+                    <div class="_1nv4amt2f8 _1nv4amt2a4 _1nv4amt280"><%=number_with_precision(token["balance"].to_f, precision: 4, significant: true, strip_insignificant_zeros: true)%></div>
+                  </div>
+                  <div class="_1nv4amt19 _1nv4amtbe _1nv4amt2f5 _1nv4amt2oy" aria-hidden="true"></div>
+                </div>
+              </div>
+            </a>
+          <% end %>
+        <% end %>
+      <% else %>
+        <p>No holdings!</p>
+      <% end %>
+    </div>
+  </div>
+<% end %>

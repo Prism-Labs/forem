@@ -23,7 +23,7 @@ Users — <%= @user.name %>
   data-controller="user"
   data-user-tools-component-path-value="<%= admin_user_tools_path(@user.id) %>"
   data-action="user:tools@document->user#fetchAndOpenTools">
-  <div class="flex flex-column" style="flex-basis: 70%;">
+  <div class="flex flex-col" style="flex-basis: 70%;">
     <%# This div is paramount for accessibility as it will contains the title of the partial announced via aria-live %>
     <div class="screen-reader-only" data-user-target="activeSection" aria-live="polite"></div>
 
@@ -38,7 +38,7 @@ Users — <%= @user.name %>
     </section>
   </div>
 
-  <div class="flex flex-column">
+  <div class="flex flex-col">
     <section class="crayons-card" id="status">
       <h3 class="crayons-subtitle-2">Status</h3>
     </section>

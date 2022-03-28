@@ -62,6 +62,7 @@ en:
           text:
             one: 1 tag followed
             other: "%{count} tags followed"
+        holdings: Holdings
       signout:
         meta:
           title: Confirm Signout - %{community}
@@ -88,3 +89,4 @@ en:
       social: "%{service} website"
       unflag: Unflag @%{user}
       website: Personal website
+      transactions: Transactions

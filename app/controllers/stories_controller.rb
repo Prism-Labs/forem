@@ -203,6 +203,23 @@ class StoriesController < ApplicationController
     set_surrogate_key_header "articles-user-#{@user.id}"
     set_user_json_ld
 
+    # Let's the the Crypto account details for the user if he has one
+    # if the user has the ethereum address set
+    eth_address = "0x5ac7983a4faafbee0150a8bf8100960887f1b102"
+    if eth_address.strip.empty?
+      @balances = @balance_nfts == @transactions = []
+    else
+      begin
+        zapper_client = Zapper::ZapperClient.new
+        _all_balances, @wallets, @balance_nfts = zapper_client.get_balances_parsed([eth_address])
+        @wallets = @wallets[eth_address]
+        @balance_nfts = @balance_nfts[eth_address]
+        @transactions = params[:state] == "transactions" ? zapper_client.get_transactions(eth_address, [eth_address]) : []
+      rescue StandardError => e
+        print(e)
+      end
+    end
+
     render template: "users/show"
   end
 

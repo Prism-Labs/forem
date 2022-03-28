@@ -137,16 +137,33 @@
   </div>
 
   <main class="crayons-layout__content articles-list" id="articles-list">
-    <div class="substories" id="substories">
-      <% if params[:view] == "comments" %>
-        <%= render "users/comments_section" %>
-      <% elsif @stories.any? || @comments.any? || @pinned_stories.any? %>
-        <%= render "users/main_feed" %>
-      <% end %>
+    <div class="crayons-tabs">
+      <%= link_to "Posts", user_profile_path(@user.username), class: "crayons-tabs__item #{'crayons-tabs__item--current' if params[:state].blank?}" %>
+      <%= link_to "NFT's", user_profile_path(@user.username, state: "nfts"), class: "crayons-tabs__item #{'crayons-tabs__item--current' if params[:state] == 'nfts'}" %>
+      <%= link_to "Transactions", user_profile_path(@user.username, state: "transactions"), class: "crayons-tabs__item #{'crayons-tabs__item--current' if params[:state] == 'transactions'}" %>
     </div>
-    <div class="loading-articles" id="loading-articles">
-      <%= t("core.loading") %>
-    </div>
+    <% if params[:state].blank? %>
+      <div class="substories" id="substories">
+        <% if params[:view] == "comments" %>
+          <%= render "users/comments_section" %>
+        <% elsif @stories.any? || @comments.any? || @pinned_stories.any? %>
+          <%= render "users/main_feed" %>
+        <% end %>
+      </div>
+      <div class="loading-articles" id="loading-articles">
+        <%= t("core.loading") %>
+      </div>
+    <% end %>
+    <% if params[:state] == 'nfts' %>
+      <div class="nfts" id="nfts">
+        <%= render "users/nft_list" %>
+      </div>
+    <% end %>
+    <% if params[:state] == 'transactions' %>
+      <div class="transactions" id="transactions">
+        <%= render "users/transactions" %>
+      </div>
+    <% end %>
   </main>
 </div>
 </main>
