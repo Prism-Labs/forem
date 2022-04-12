@@ -70,8 +70,6 @@ class CryptoProfileController < ApplicationController
     return if eth_address.blank? || eth_address.strip.empty?
 
     begin
-      zapper_client = Zapper::ZapperClient.new
-      @transactions = params[:state] == "transactions" ? zapper_client.get_transactions(eth_address, [eth_address]) : []
       @crypto_profile = CryptoProfile.new(ethereum_address: params[:ethereum_address],
                                           ens: params[:ens], web3_username: params[:web3_username])
       @crypto_profile.save
@@ -94,6 +92,8 @@ class CryptoProfileController < ApplicationController
       # redirect to the user profile page
       return redirect_to user_profile_path(@crypto_profile.user.username.downcase)
     end
+
+    params[:state] ||= "transactions"
 
     # Otherwise show the profile
     set_profile_title
