@@ -45,6 +45,7 @@ en:
         available_for: Available for
         skills_languages: Skills/Languages
         work: Work
+        ethereum_address: Ethereum Address
       side:
         comment:
           icon: Comment

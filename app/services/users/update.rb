@@ -38,6 +38,7 @@ module Users
         @success = true
         @user.touch(:profile_updated_at)
         conditionally_resave_articles
+        update_crypto_profile
       else
         errors.concat(@profile.errors.full_messages)
         errors.concat(@user.errors.full_messages)
@@ -117,6 +118,36 @@ module Users
       @updated_user_attributes.any_key?(user_fields) ||
         @updated_profile_attributes.any_key?(CORE_PROFILE_FIELDS) ||
         @updated_users_setting_attributes.any_key?(CORE_SETTINGS_FIELDS)
+    end
+
+    def normalize_ethereum_address(ethereum)
+      ethereum_address = "0x#{ethereum}" if ethereum.length == 40 && !ethereum.starts_with?("0x")
+      ethereum_address ||= ethereum if ethereum.length == 42 && ethereum.starts_with?("0x")
+      ens = ethereum if ethereum.ends_with?(".eth")
+      ens ||= ethereum.replace(".xyz", "") if ethereum.ends_with?(".eth.xyz")
+
+      [ethereum_address, ens]
+    end
+
+    def update_crypto_profile
+      # if "Ethereum Address" profile field (custom profile field) is updated
+      return if @updated_profile_attributes[:ethereum_address].blank?
+
+      ethereum_address, ens = normalize_ethereum_address(@updated_profile_attributes[:ethereum_address])
+      return if ethereum_address.blank? && ens.blank?
+
+      if @user.crypto_profiles.exists?
+        existing_profile = @user.crypto_profiles.first
+        existing_profile.update(ethereum_address: ethereum_address) if ethereum_address.present?
+        existing_profile.update(ens: ens) if ens.present?
+        puts "\n\n\n\n\n\n Updated existing profile \n\n\n\n\n\n\n\n"
+      else
+        # look for crypto profile that has the given address
+        new_profile = CryptoProfile.new(user: @user, ethereum_address: ethereum_address, ens: ens,
+                          github_username: @user.github_username, twitter_username: @user.twitter_username)
+        new_profile.save
+        puts "\n\n\n\n\n\n New profile \n\n\n\n\n\n\n\n"
+      end
     end
   end
 end

@@ -2,32 +2,35 @@ require "async"
 require "ld-eventsource"
 
 ##
-# Zapper API related module
+# Etherscan API related module
+# NOTE: Not yet tested (2022-04-12)
 #
-module Zapper
+module Etherscan
   ##
-  # Zapper API Client (https://zapper.fi)
-  #   Ref: Swagger Doc : https://api.zapper.fi/api/static/index.html#/
+  # Etherscan.IO API Client (https://etherscan.io)
+  #   Ref: https://docs.etherscan.io/
   # Extends HTTParty to create a custom client
   #
-  class ZapperClient
+  class EtherscanClient
     include HTTParty
 
     def initialize(api_key: nil)
-      @base_uri = "https://api.zapper.fi"
-      @zapper_fi_api_key = api_key.presence || ENV.fetch("ZAPPER_FI_API_KEY", "96e0cc51-a62e-42ca-acee-910ea7d2a241")
+      @base_uri = "https://api.etherscan.io/api"
+      @api_key = api_key.presence || ENV.fetch("ETHERSCAN_API_KEY", "")
 
-      return unless @zapper_fi_api_key.strip.empty?
+      return unless @api_key.strip.empty?
 
-      message = "The Zapper API Client is not configured properly, missing API KEY!"
+      message = "The Etherscan.IO API Client is not configured properly, missing API KEY!"
       raise ArgumentError, message
     end
 
     def call_api_get(api_path, **params)
-      return if @zapper_fi_api_key.blank?
+      if @api_key.blank?
+        return
+      end
 
-      api_url = "#{@base_uri}#{api_path}?api_key=#{@zapper_fi_api_key}&#{params.to_query}"
-      puts "Calling ZAPPER FI API - #{api_url}"
+      api_url = "#{@base_uri}#{api_path}?api_key=#{@api_key}&#{params.to_query}"
+      puts "Calling Etherscan.IO API - #{api_url}"
 
       response = HTTParty.get(api_url, format: :plain)
 
@@ -43,10 +46,10 @@ module Zapper
 
     def call_api_get_eventstream_async(api_path, **params)
       Async do |task|
-        return if @zapper_fi_api_key.blank?
+        return if @api_key.blank?
 
-        api_url = "#{@base_uri}#{api_path}?api_key=#{@zapper_fi_api_key}&#{params.to_query}"
-        puts "Calling ZAPPER FI API (Expecting an Event-Stream) - #{api_url}"
+        api_url = "#{@base_uri}#{api_path}?api_key=#{@api_key}&#{params.to_query}"
+        puts "Calling Etherscan.IO API (Expecting an Event-Stream) - #{api_url}"
 
         all_events = []
         es_started = false
@@ -64,70 +67,15 @@ module Zapper
             elsif es_started && !es_ended
               all_events.append(event)
             end
-            puts("Zapper response event stream: #{event.type}")
+            puts("Etherscan.IO response event stream: #{event.type}")
           end
         end
 
         task.sleep(20) until sse_client.closed?
 
-        puts("Zapper response event stream: Closed, #{all_events.length} valid events so far")
+        puts("Etherscan.IO response event stream: Closed, #{all_events.length} valid events so far")
         all_events
       end
-    end
-
-    def call_graphql(body)
-      return if @zapper_fi_api_key.blank?
-
-      puts "Calling Zapper GraphQL"
-      puts body.to_json
-
-      api_url = "#{@base_uri}/graphql?api_key=#{@zapper_fi_api_key}"
-      response = HTTParty.post(api_url, body: body.to_json, headers: { "Content-Type" => "application/json" }, format: :plain)
-
-      puts "Got response from Zapper GraphQL"
-      puts response
-      result = JSON.parse response
-
-      result["data"]
-    end
-
-    def resolve_ens(ens)
-      body = {
-        query: "
-query search(
-  $categories: [SearchResultCategory!]
-  $networks: [Network!]
-  $search: String!
-  $maxResultsPerCategory: Float
-) {
-  search(
-    input: {
-      categories: $categories
-      networks: $networks
-      search: $search
-      maxResultsPerCategory: $maxResultsPerCategory
-    }
-  ) {
-    results {
-      __typename
-      ... on UserResult {
-        ens
-        address
-        imageUrl
-      }
-    }
-  }
-}",
-        variables: {
-          categories: ["USER"],
-          search: ens
-        }
-      }
-      res = call_graphql(body)
-      {
-        ens: res["search"]["results"][0]["ens"],
-        address: res["search"]["results"][0]["address"]
-      }
     end
 
     # Get Historical Transactions API

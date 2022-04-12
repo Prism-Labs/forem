@@ -61,9 +61,15 @@ nohup foreman start > log/foreman.log 2>&1 &
   - ADDED `app/liquid_tags/link_with_preview_tag.rb`
   - ADDED `app/views/liquids/_link_with_preview.html.erb`
 
-- []  Create an automated post using [Dune API](https://dune.xyz)
+- [x]  Create an automated post using [Dune API](https://dune.xyz)
   Files:
   - ADDED `app/workers/everlist/dune_autopost_worker
+
+- [] Update User Profile page to have the Crypto wallet details
+  This feature is implemented using some "optional" features of Forem, which is disabled by default.
+  1. `/admin/feature_flags/features`, add and enable feature named "profile_admin"
+  2. `/admin/customization/profile_fields`, add profile_field_group and a new profile_field,
+    named "Ethereum Address" and this field would be accessible by `user.profile.ethereum_address`
 
 ## Optional Features of Forem
 

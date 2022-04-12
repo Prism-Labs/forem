@@ -1,0 +1,84 @@
+<main id="main-content">
+<% title @crypto_profile_title %>
+
+<% unless internal_navigation? %>
+  <script type="application/ld+json">
+    <%= @crypto_profile_json_ld.to_json.html_safe %>
+  </script>
+<% end %>
+
+<% cache "crypto-profile-header-area-#{@crypto_profile.id}-#{@crypto_profile.updated_at}", expires_in: 10.days do %>
+  <div class="brand-bg">
+    <div class="crayons-layout crayons-layout--limited-l pt-7 m:pt-9">
+      <header class="profile-header crayons-card mt-2">
+        <div class="relative profile-header__top">
+          <span class="crayons-avatar crayons-avatar--3xl">
+            <img src="<%= Images::Profile.call(@crypto_profile.profile_image_url, length: 320) %>" width="128" height="128" alt="<%= @crypto_profile_title %> profile picture" class="crayons-avatar__image">
+          </span>
+        </div>
+
+        <div class="profile-header__details">
+          <h1 class="crayons-title fw-heavy mb-2"><%= @crypto_profile_title %></h1>
+          <p class="fs-base m:fs-l color-base-90 mb-4 mx-auto max-w-100 m:max-w-75"><%= @crypto_profile.description.presence || [t("views.users.empty")].sample %></p>
+
+          <div class="profile-header__meta">
+            <% if @crypto_profile.email.present? %>
+              <a href="mailto:<%= @crypto_profile.email %>" class="profile-header__meta__item">
+                <%= inline_svg_tag("email.svg", class: "crayons-icon mr-2 shrink-0", aria: true, title: t("views.users.email_icon")) %>
+                <%= @crypto_profile.email %>
+              </a>
+            <% end %>
+
+            <% if @crypto_profile.website_url.present? %>
+              <a href="<%= @crypto_profile.website_url %>" target="_blank" rel="noopener me ugc" class="profile-header__meta__item">
+                <%= inline_svg_tag("external-link.svg", class: "crayons-icon mr-2 shrink-0", aria: true, title: t("views.users.website")) %>
+                <%= @crypto_profile.website_url %>
+              </a>
+            <% end %>
+
+            <% if @crypto_profile.twitter_username.present? %>
+              <a href="https://twitter.com/<%=@crypto_profile.twitter_username %>" target="_blank" rel="noopener me" class="profile-header__meta__item p-1">
+                <%= inline_svg_tag("twitter.svg", class: "crayons-icon shrink-0", aria: true, title: t("views.users.social", service: "twitter")) %>
+              </a>
+            <% end %>
+
+            <% if @crypto_profile.github_username.present? %>
+              <a href="https://github.com/<%=@crypto_profile.github_username %>" target="_blank" rel="noopener me" class="profile-header__meta__item p-1">
+                <%= inline_svg_tag("github.svg", class: "crayons-icon shrink-0", aria: true, title: t("views.users.social", service: "github")) %>
+              </a>
+            <% end %>
+          </div>
+        </div>
+      </header>
+    </div>
+  </div>
+<% end %>
+
+<div
+  class="crayons-layout crayons-layout--limited-l crayons-layout--2-cols crayons-layout--2-cols--1-2 pt-4 m:pt-0"
+  id="index-container">
+
+  <div class="crayons-layout__sidebar-left">
+    <%= render partial: "users/crypto_sidebar" %>
+  </div>
+
+  <main class="crayons-layout__content articles-list">
+    <div class="crayons-tabs">
+      <%= link_to "NFT's", url_for(:state => "nfts"), class: "crayons-tabs__item #{'crayons-tabs__item--current' if params[:state] == 'nfts'}" %>
+      <%= link_to "Transactions", url_for(:state => "transactions"), class: "crayons-tabs__item #{'crayons-tabs__item--current' if params[:state] == 'transactions'}" %>
+    </div>
+    <% if params[:state] == 'nfts' %>
+      <div class="nfts" id="nfts">
+        <%= render "users/crypto_nft_list" %>
+      </div>
+    <% end %>
+    <% if params[:state] == 'transactions' %>
+      <div class="transactions" id="transactions">
+        <%= render "users/crypto_transactions" %>
+      </div>
+    <% end %>
+  </main>
+</div>
+</main>
+
+<%= javascript_packs_with_chunks_tag "followButtons", defer: true %>

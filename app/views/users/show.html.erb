@@ -156,12 +156,12 @@
     <% end %>
     <% if params[:state] == 'nfts' %>
       <div class="nfts" id="nfts">
-        <%= render "users/nft_list" %>
+        <%= render "users/crypto_nft_list" %>
       </div>
     <% end %>
     <% if params[:state] == 'transactions' %>
       <div class="transactions" id="transactions">
-        <%= render "users/transactions" %>
+        <%= render "users/crypto_transactions" %>
       </div>
     <% end %>
   </main>

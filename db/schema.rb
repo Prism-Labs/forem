@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_01_20_358333) do
+ActiveRecord::Schema.define(version: 2022_04_09_014131) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
@@ -154,7 +154,6 @@ ActiveRecord::Schema.define(version: 2022_01_20_358333) do
     t.string "video_state"
     t.string "video_thumbnail_url"
     t.index "user_id, title, digest(body_markdown, 'sha512'::text)", name: "index_articles_on_user_id_and_title_and_digest_body_markdown", unique: true
-    t.index ["autopost_templates_id"], name: "index_articles_on_autopost_templates_id"
     t.index ["cached_tag_list"], name: "index_articles_on_cached_tag_list", opclass: :gin_trgm_ops, using: :gin
     t.index ["canonical_url"], name: "index_articles_on_canonical_url", unique: true, where: "(published IS TRUE)"
     t.index ["collection_id"], name: "index_articles_on_collection_id"
@@ -455,6 +454,29 @@ ActiveRecord::Schema.define(version: 2022_01_20_358333) do
     t.bigint "user_id"
     t.index ["purchase_id", "purchase_type"], name: "index_credits_on_purchase_id_and_purchase_type"
     t.index ["spent"], name: "index_credits_on_spent"
+  end
+
+  create_table "crypto_profiles", force: :cascade do |t|
+    t.datetime "created_at", precision: 6, null: false
+    t.string "description"
+    t.string "email"
+    t.string "ens"
+    t.string "ethereum_address"
+    t.string "github_username"
+    t.string "name"
+    t.string "profile_image_url"
+    t.string "twitter_username"
+    t.datetime "updated_at", precision: 6, null: false
+    t.integer "user_id"
+    t.string "web3_username"
+    t.string "website_url"
+    t.index ["email"], name: "index_crypto_profiles_on_email"
+    t.index ["ens"], name: "index_crypto_profiles_on_ens"
+    t.index ["ethereum_address"], name: "index_crypto_profiles_on_ethereum_address"
+    t.index ["github_username"], name: "index_crypto_profiles_on_github_username"
+    t.index ["twitter_username"], name: "index_crypto_profiles_on_twitter_username"
+    t.index ["web3_username"], name: "index_crypto_profiles_on_web3_username"
+    t.index ["website_url"], name: "index_crypto_profiles_on_website_url"
   end
 
   create_table "data_update_scripts", force: :cascade do |t|
@@ -1497,6 +1519,7 @@ ActiveRecord::Schema.define(version: 2022_01_20_358333) do
   add_foreign_key "comments", "users", on_delete: :cascade
   add_foreign_key "credits", "organizations", on_delete: :restrict
   add_foreign_key "credits", "users", on_delete: :cascade
+  add_foreign_key "crypto_profiles", "users", on_delete: :nullify
   add_foreign_key "devices", "consumer_apps"
   add_foreign_key "devices", "users"
   add_foreign_key "discussion_locks", "articles"
