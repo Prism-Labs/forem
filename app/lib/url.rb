@@ -89,9 +89,9 @@ module URL
   #
   # @param profile [CryptoProfile] the profile to create the URL for
   def self.crypto_profile(profile)
-    url("/crypto_profile/#{profile.ethereum_address}") if profile.ethereum_address.present?
-    url("/crypto_profile/#{profile.ens}") if profile.ens.present?
-    url("/crypto_profile/#{profile.web3_username}") if profile.web3_username.present?
+    url("/account/#{profile.ethereum_address}") if profile.ethereum_address.present?
+    url("/account/#{profile.ens}") if profile.ens.present?
+    url("/account/#{profile.web3_username}") if profile.web3_username.present?
   rescue URI::InvalidURIError # invalid username containing spaces will result in an error
     nil
   end

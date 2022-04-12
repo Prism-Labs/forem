@@ -382,10 +382,10 @@ Rails.application.routes.draw do
     get "/top/:timeframe", to: "stories#index"
 
     # Crypto profile
-    get "/crypto_profile/:slug", to: "crypto_profile#index", constraints: { slug: /[^\/]+/ }, as: :crypto_profile
-    get "/crypto_profile/ethereum/:etherum", to: "crypto_profile#ethereum_index", constraints: { etherum: /[^\/]+/ }, as: :crypto_profile_ethereum
-    get "/crypto_profile/twitter/:twitter_username", to: "crypto_profile#twitter_index", as: :crypto_profile_twitter
-    get "/crypto_profile/github/:github_username", to: "crypto_profile#github_index", as: :crypto_profile_github
+    get "/account/:slug", to: "crypto_profile#index", constraints: { slug: /[^\/]+/ }, as: :crypto_profile
+    get "/account/ethereum/:etherum", to: "crypto_profile#ethereum_index", constraints: { etherum: /[^\/]+/ }, as: :crypto_profile_ethereum
+    get "/account/twitter/:twitter_username", to: "crypto_profile#twitter_index", as: :crypto_profile_twitter
+    get "/account/github/:github_username", to: "crypto_profile#github_index", as: :crypto_profile_github
 
     get "/:timeframe", to: "stories#index", constraints: { timeframe: /latest/ }
 
