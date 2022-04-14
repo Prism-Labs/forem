@@ -3,8 +3,6 @@ module Api
     class CryptoProfilesController < ApiController
       include ActionView::Helpers::NumberHelper
 
-      before_action :authenticate!
-
       def transactions
         set_profile
         eth_address = @crypto_profile.ethereum_address
