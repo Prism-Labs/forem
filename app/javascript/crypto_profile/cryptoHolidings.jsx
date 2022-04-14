@@ -25,7 +25,7 @@ export class CryptoHoldings extends Component {
         throw new Error(response.statusText);
       }
     } catch (error) {
-      this.setState({ error: true, errorMessage: error.toString() });
+      this.setState({ isLoading: false, error: true, errorMessage: error.toString() });
     }
   }
 
