@@ -7,15 +7,21 @@ export class CryptoTransactions extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      profileId: props.profileId,
       txs: props.txs || [],
       isLoading: !props.txs
     };
 
-    if (!props.txs)
+    if (!props.txs) {
       this.loadTransactions()
+    }
   }
 
   async loadTransactions() {
+    if (!this.state.profileId) {
+      this.setState({ isLoading: false })
+      return;
+    }
     try {
       const response = await request(`/api/crypto_profile/${this.props.profileId}/transactions`);
       if (response.ok) {

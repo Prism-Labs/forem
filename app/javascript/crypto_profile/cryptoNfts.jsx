@@ -7,6 +7,7 @@ export class CryptoNfts extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      profileId: props.profileId,
       nfts: props.nfts || [],
       isLoading: !props.nfts,
     };
@@ -16,6 +17,10 @@ export class CryptoNfts extends Component {
   }
 
   async loadBalance() {
+    if (!this.state.profileId) {
+      this.setState({ isLoading: false })
+      return;
+    }
     try {
       const response = await request(`/api/crypto_profile/${this.props.profileId}/nfts`);
       if (response.ok) {

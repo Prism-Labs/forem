@@ -4,5 +4,5 @@
       <%= t("views.users.transactions") %>
     </h3>
   </div>
-  <div id="crypto-profile-transactions" data-crypto-profile-id="<%=@crypto_profile.id %>"></div>
+  <div id="crypto-profile-transactions" data-crypto-profile-id="<%=@crypto_profile ? @crypto_profile.id : "" %>"></div>
 </div>

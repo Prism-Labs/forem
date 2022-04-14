@@ -7,6 +7,7 @@ export class CryptoHoldings extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      profileId: props.profileId,
       tokens: props.tokens || [],
       isLoading: !props.tokens
     };
@@ -16,6 +17,10 @@ export class CryptoHoldings extends Component {
   }
 
   async loadBalance() {
+    if (!this.state.profileId) {
+      this.setState({ isLoading: false })
+      return;
+    }
     try {
       const response = await request(`/api/crypto_profile/${this.props.profileId}/balances`);
       if (response.ok) {

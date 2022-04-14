@@ -4,5 +4,5 @@
       <%= t("views.users.side.holdings") %></h3>
     </h3>
   </header>
-  <div class="crayons-card__body py-4 px-3" id="crypto-profile-holdings" data-crypto-profile-id="<%=@crypto_profile.id %>"></div>
+  <div class="crayons-card__body py-4 px-3" id="crypto-profile-holdings" data-crypto-profile-id="<%=@crypto_profile ? @crypto_profile.id : "" %>"></div>
 </div>
