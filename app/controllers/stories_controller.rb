@@ -211,20 +211,6 @@ class StoriesController < ApplicationController
     #    2. `/admin/customization/profile_fields`, add profile_field_group and a new profile_field,
     #        named "Ethereum Address" and this field would be accessible by `user.profile.ethereum_address`
     @crypto_profile = @user.crypto_profiles.first if @user.crypto_profiles.exists?
-    eth_address = (@crypto_profile.ethereum_address || @crypto_profile.ens) if @crypto_profile.present?
-    if eth_address.blank? || eth_address.strip.empty?
-      @balances = @balance_nfts == @transactions = []
-    else
-      begin
-        zapper_client = Zapper::ZapperClient.new
-        _all_balances, @wallets, @balance_nfts = zapper_client.get_balances_parsed([eth_address])
-        @wallets = @wallets[eth_address]
-        @balance_nfts = @balance_nfts[eth_address]
-        @transactions = params[:state] == "transactions" ? zapper_client.get_transactions(eth_address, [eth_address]) : []
-      rescue StandardError => e
-        print(e)
-      end
-    end
 
     render template: "users/show"
   end

@@ -1,33 +1,8 @@
-<% cache("crypto-profile-transactions-#{@crypto_profile.id}", expires_in: 15.minutes) do %>
-  <div class="profile-transactions-card crayons-card mt-2 m:mt-0 mb-2">
-    <div class="crayons-card__header">
-      <h3 class="crayons-subtitle-2">
-        <%= t("views.users.transactions") %>
-      </h3>
-    </div>
-    <% unless @transactions.blank?%>
-      <div class="transactions-list px-4 py-3">
-        <% @transactions.each do |tx| %>
-          <div class="transaction-container flex flex-col">
-            <div class="transaction-status-label <%=tx["txSuccessful"] ? "success":"failure" %>" title="<%=tx["txSuccessful"] ? "Successful transaction":"Failed transaction" %>"></div>
-            <div><span class="transaction-amount-label">Hash:</span><code><%=tx["hash"]%></code></div>
-            <div>
-              <%=tx["direction"].titleize%>
-              <%=tx["direction"] == "outgoing" ? "to" : "from"%>
-              <code><%=tx["direction"] == "outgoing" ? tx["destination"] : tx["from"] %></code>
-              at <%=Time.at(tx["timeStamp"].to_i)%>
-            </div>
-            <div class="flex flex-row justify-between">
-              <div><span class="transaction-amount-label">Amount: </span><span><%=number_with_precision(tx["amount"], precision: 4, significant: true, strip_insignificant_zeros: true)%></span></div>
-              <div><span class="transaction-amount-label">Gas: </span><span><%=number_with_precision(tx["gas"], precision: 4, significant: true, strip_insignificant_zeros: true)%></span></div>
-            </div>
-          </div>
-        <% end %>
-      </div>
-    <% else %>
-      <div class="px-4 py-3">
-        <p>No transactions<p>
-      </div>
-    <% end %>
+<div class="profile-transactions-card crayons-card mt-2 m:mt-0 mb-2">
+  <div class="crayons-card__header">
+    <h3 class="crayons-subtitle-2">
+      <%= t("views.users.transactions") %>
+    </h3>
   </div>
-<% end %>
+  <div id="crypto-profile-transactions" data-crypto-profile-id="<%=@crypto_profile.id %>"></div>
+</div>

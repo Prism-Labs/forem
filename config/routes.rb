@@ -100,6 +100,10 @@ Rails.application.routes.draw do
           resources :autoposts, only: [:index], to: "organizations#autoposts"
         end
         resource :instance, only: %i[show]
+
+        get "/crypto_profile/:id/transactions", to: "crypto_profiles#transactions"
+        get "/crypto_profile/:id/balances", to: "crypto_profiles#balances"
+        get "/crypto_profile/:id/nfts", to: "crypto_profiles#nfts"
       end
     end
 

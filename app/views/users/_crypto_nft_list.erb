@@ -1,50 +1,6 @@
-<% cache("crypto-profile-nfts-#{@crypto_profile.id}", expires_in: 15.minutes) do %>
-  <div class="profile-nft-card crayons-card mt-2 m:mt-0 mb-2">
-    <div class="crayons-card__header">
-      <h3 class="crayons-subtitle-2">NFT's</h3>
-    </div>
-    
-    <% unless @balance_nfts.blank? %>
-      <!-- grid -->
-      <div class="px-4 py-3 nft-grid">
-        <% @balance_nfts.each do |asset| %>
-          <% asset["tokens"].each do |token| %>
-            <% next unless token["shouldDisplay"] %>
-            <a href="#">
-              <div class="token-container">
-                <div class="token-img-container">
-                  <img class="token-img" src="<%=token["collectionImg"] %>" alt="<%=token["collectionName"] %>">
-                  <div class="token-origin">
-                    <img class="token-origin-profile" src="<%=token["collection"]["imgProfile"]%>">
-                  </div>
-                  <div class="token-count">
-                    <span class="line-height _1nv4amt27v"><%=number_with_precision(token["balance"], precision: 0, significant: true, strip_insignificant_zeros: true) %></span>
-                  </div>
-                </div>
-                <div class="token-detail-container">
-                  <div class="token-title" style="width: calc(100%);"><%=token["collectionName"] %></div>
-                  <div class="flex flex-row justify-between">
-                    <div class="token-value-item">
-                      <div class="token-value-label">
-                        <span class="line-height">Floor Price</span>
-                      </div>
-                      <div class="token-value-value"><%=number_with_precision(token["collection"]["floorPrice"].to_f, precision: 5, significant: true, strip_insignificant_zeros: true) %></div>
-                    </div>
-                    <div class="token-value-item">
-                      <div class="token-value-label"><span class="line-height">Est. Value</span></div>
-                      <div class="token-value-value"><%=number_to_currency(token["balanceUSD"].to_f) %></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </a>
-          <% end %>
-        <% end %>
-      </div><!--/ grid -->
-    <% else %>
-      <div class="px-4 py-3">
-        <p>No NFT's</p>
-      </div>
-    <% end %>
+<div class="profile-nft-card crayons-card mt-2 m:mt-0 mb-2">
+  <div class="crayons-card__header">
+    <h3 class="crayons-subtitle-2">NFT's</h3>
   </div>
-<% end %>
+  <div id="crypto-profile-nfts" data-crypto-profile-id="<%=@crypto_profile.id %>"></div>
+</div>

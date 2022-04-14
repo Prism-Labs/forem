@@ -1,0 +1,46 @@
+import { h, Component } from 'preact';
+import PropTypes from 'prop-types';
+import { SingleCryptoHolding } from './singleCryptoHolding';
+import { request } from '@utilities/http';
+
+export class CryptoHoldings extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      tokens: props.tokens || [],
+      isLoading: !props.tokens
+    };
+
+    if (!props.tokens)
+      this.loadBalance()
+  }
+
+  async loadBalance() {
+    try {
+      const response = await request(`/api/crypto_profile/${this.props.profileId}/balances`);
+      if (response.ok) {
+        const tokens = await response.json();
+        this.setState({ tokens });
+      } else {
+        throw new Error(response.statusText);
+      }
+    } catch (error) {
+      this.setState({ error: true, errorMessage: error.toString() });
+    }
+  }
+
+  render() {
+    return this.state.isLoading ? (<p>Loading... </p>) : (
+      <div class="crypto-holding-list">
+        {this.state.tokens.map((token, i) => (<SingleCryptoHolding key={i} token={token} />))}
+      </div>
+    )
+  }
+}
+
+CryptoHoldings.displayName = 'Crypto-Holdings';
+
+CryptoHoldings.propTypes = {
+  profileId: PropTypes.number.isRequired,
+  tokens: PropTypes.array,
+};

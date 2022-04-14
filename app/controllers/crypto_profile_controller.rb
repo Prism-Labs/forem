@@ -99,7 +99,7 @@ class CryptoProfileController < ApplicationController
     set_profile_title
     set_profile_json_ld
 
-    set_crypto_account_balance
+    # set_crypto_account_balance
 
     render template: "users/crypto_profile_show"
   end
