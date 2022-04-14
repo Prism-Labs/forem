@@ -20,7 +20,7 @@ export class CryptoHoldings extends Component {
       const response = await request(`/api/crypto_profile/${this.props.profileId}/balances`);
       if (response.ok) {
         const tokens = await response.json();
-        this.setState({ tokens });
+        this.setState({ tokens, isLoading: false });
       } else {
         throw new Error(response.statusText);
       }
@@ -33,6 +33,7 @@ export class CryptoHoldings extends Component {
     return this.state.isLoading ? (<p>Loading... </p>) : (
       <div class="crypto-holding-list">
         {this.state.tokens.map((token, i) => (<SingleCryptoHolding key={i} token={token} />))}
+        {!this.state.tokens && (<p>No tokens</p>)}
       </div>
     )
   }

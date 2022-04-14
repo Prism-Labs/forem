@@ -20,7 +20,7 @@ export class CryptoTransactions extends Component {
       const response = await request(`/api/crypto_profile/${this.props.profileId}/transactions`);
       if (response.ok) {
         const txs = await response.json();
-        this.setState({ txs });
+        this.setState({ txs, isLoading: false });
       } else {
         throw new Error(response.statusText);
       }
@@ -33,6 +33,7 @@ export class CryptoTransactions extends Component {
     return this.state.isLoading ? (<p>Loading...</p>) : (
       <div class="transactions-list px-4 py-3">
         {this.state.txs.map((tx, i) => (<SingleCryptoTransaction key={i} tx={tx} />))}
+        {!this.state.txs && (<p>No transactions</p>)}
       </div>
     )
   }
