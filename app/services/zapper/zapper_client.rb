@@ -132,7 +132,7 @@ query search(
 
     # Get Historical Transactions API
     def get_transactions(address, addresses, network = nil)
-      namespaced_key = "crypto_txs_#{addresses.join('_')}"
+      namespaced_key = "crypto_txs_#{address}__#{addresses.join('_')}__#{network}"
       Rails.cache.fetch(namespaced_key, expires_in: 900) do
         args = { address: address, addresses: addresses }
         if network.present?
