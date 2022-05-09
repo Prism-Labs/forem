@@ -73,7 +73,7 @@ class ScreenshotTag < CustomLiquidTagBase
 
   def render(context)
     @url = parse_value_with_context(@url_arg, context).strip
-    @url = ActionController::Base.helpers.strip_tags(@url)
+    @url = URI.extract(@url, /http(s)?/)
 
     generate_screenshot
 

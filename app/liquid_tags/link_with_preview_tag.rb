@@ -22,7 +22,9 @@ class LinkWithPreviewTag < ScreenshotTag
 
   def render(context)
     @url = parse_value_with_context(@url_arg, context).strip
-    @url = ActionController::Base.helpers.strip_tags(@url)
+    url = URI.extract(@url, /http(s)?/)
+    @url = url[0] unless url.empty?
+    puts "final url: #{@url}"
 
     if DUNE_XYZ_URL_REGEXP.match @url
       @oembed = {
