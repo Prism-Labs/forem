@@ -23,11 +23,9 @@ export class SingleCryptoHolding extends Component {
             <div className="_1nv4amt2f8 _1nv4amt2a4 _1nv4amt280">{this.state.price}</div>
           </div>
         </div>
-        <div className="flex items-center">
-          <div className="_1nv4amt2b8 _1nv4amt2a0 _1nv4amt27v">{this.state.balanceUSD}
-            <div className="_1nv4amt2f8 _1nv4amt2a4 _1nv4amt280">{this.state.balance}</div>
-          </div>
-          <div className="_1nv4amt19 _1nv4amtbe _1nv4amt2f5 _1nv4amt2oy" aria-hidden="true" />
+        <div className="flex flex-col items-end justify-center">
+          <div className="_1nv4amt2b8 _1nv4amt2a0 _1nv4amt27v">{this.state.balanceUSD}</div>
+          <div className="_1nv4amt2f8 _1nv4amt2a4 _1nv4amt280">{this.state.balance}</div>
         </div>
       </div>
     );

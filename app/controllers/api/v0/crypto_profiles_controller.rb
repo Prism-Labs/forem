@@ -9,19 +9,7 @@ module Api
         result = []
         zapper_client = Zapper::ZapperClient.new
         @transactions = zapper_client.get_transactions(eth_address, [])
-        @transactions.each do |tx|
-          result.append({
-                          txSuccessful: tx["txSuccessful"],
-                          direction: tx["direction"],
-                          hash: tx["hash"],
-                          destination: tx["destination"],
-                          from: tx["from"],
-                          timeStamp: Time.at(tx["timeStamp"].to_i),
-                          amount: number_with_precision(tx["amount"], precision: 4, significant: true, strip_insignificant_zeros: true),
-                          gas: number_with_precision(tx["gas"], precision: 4, significant: true, strip_insignificant_zeros: true)
-                        })
-        end
-        render json: result
+        render json: @transactions
       rescue StandardError => e
         render json: { error: e }, status: 410
       end

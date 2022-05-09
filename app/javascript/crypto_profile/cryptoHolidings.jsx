@@ -2,6 +2,7 @@ import { h, Component } from 'preact';
 import PropTypes from 'prop-types';
 import { SingleCryptoHolding } from './singleCryptoHolding';
 import { request } from '@utilities/http';
+import { Spinner } from '@crayons/Spinner/Spinner';
 
 export class CryptoHoldings extends Component {
   constructor(props) {
@@ -35,7 +36,7 @@ export class CryptoHoldings extends Component {
   }
 
   render() {
-    return this.state.isLoading ? (<p>Loading... </p>) : (
+    return this.state.isLoading ? (<p><Spinner /> Loading... </p>) : (
       <div class="crypto-holding-list">
         {this.state.tokens.map((token, i) => (<SingleCryptoHolding key={i} token={token} />))}
         {!this.state.tokens && (<p>No tokens</p>)}

@@ -2,6 +2,7 @@ import { h, Component } from 'preact';
 import PropTypes from 'prop-types';
 import { SingleCryptoNft } from './singleCryptoNft';
 import { request } from '@utilities/http';
+import { Spinner } from '@crayons/Spinner/Spinner';
 
 export class CryptoNfts extends Component {
   constructor(props) {
@@ -35,8 +36,8 @@ export class CryptoNfts extends Component {
   }
 
   render() {
-    return this.state.isLoading ? (<p>Loading... </p>) : (
-      <div class="px-4 py-3 nft-grid">
+    return this.state.isLoading ? (<p><Spinner /> Loading... </p>) : (
+      <div class="nft-grid">
         {this.state.nfts.map((token, i) => (<SingleCryptoNft key={i} token={token} />))}
         {!this.state.nfts && (<p>No tokens</p>)}
       </div>

@@ -5,6 +5,7 @@ require "ld-eventsource"
 # Etherscan API related module
 # NOTE: Not yet tested (2022-04-12)
 #
+
 module Etherscan
   ##
   # Etherscan.IO API Client (https://etherscan.io)

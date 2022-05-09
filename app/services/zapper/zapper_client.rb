@@ -4,6 +4,109 @@ require "ld-eventsource"
 ##
 # Zapper API related module
 #
+#
+# Example transaction:
+#
+# {
+#   "network": "ethereum",
+#   "hash": "0x400d89391405016889d70a0717f03e33d22dcdaafe0426c3f701d556a314e74d",
+#   "blockNumber": 14591765,
+#   "name": "Receive",
+#   "direction": "incoming",
+#   "timeStamp": "1650049632",
+#   "symbol": "Wrapped ApeCoin (ape.claims)",
+#   "address": "0x9da458800bb0fea8e0734ecf4ba9d0e13dde7118",
+#   "amount": "10.0000",
+#   "from": "0x9da458800bb0fea8e0734ecf4ba9d0e13dde7118",
+#   "destination": "0x5ac7983a4faafbee0150a8bf8100960887f1b102",
+#   "contract": "0x9da458800bb0fea8e0734ecf4ba9d0e13dde7118",
+#   "subTransactions": [
+#       {
+#           "type": "incoming",
+#           "symbol": "Wrapped ApeCoin (ape.claims)",
+#           "amount": 10,
+#           "address": "0x9da458800bb0fea8e0734ecf4ba9d0e13dde7118"
+#       }
+#   ],
+#   "nonce": "7",
+#   "gasPrice": 6.2612285676e-08,
+#   "gasLimit": 0.7156499100058281,
+#   "input": "deprecated",
+#   "gas": 0.7156499100058281,
+#   "txSuccessful": true,
+#   "account": "0x5ac7983a4faafbee0150a8bf8100960887f1b102",
+#   "destinationEns": null,
+#   "accountEns": null
+# },
+# {
+#   "network": "ethereum",
+#   "hash": "0x48122bcebed4bef466ed1ca02a315a069a749c89a1b4843fbb48836d2b71b6ae",
+#   "blockNumber": 14440449,
+#   "name": "Send",
+#   "direction": "outgoing",
+#   "timeStamp": "1648009969",
+#   "symbol": "ETH",
+#   "address": "0x0000000000000000000000000000000000000000",
+#   "amount": "0.8480",
+#   "from": "0x5ac7983a4faafbee0150a8bf8100960887f1b102",
+#   "destination": "0x7f268357a8c2552623316e2562d90e642bb538e5",
+#   "contract": "0x7f268357a8c2552623316e2562d90e642bb538e5",
+#   "subTransactions": [
+#       {
+#           "type": "outgoing",
+#           "symbol": "ETH",
+#           "amount": 0.848,
+#           "address": "0x0000000000000000000000000000000000000000"
+#       }
+#   ],
+#   "nonce": "246",
+#   "gasPrice": 4.5368317555e-08,
+#   "gasLimit": 0.011566244245789257,
+#   "input": "0xab834bab",
+#   "gas": 0.008455157237772685,
+#   "txSuccessful": true,
+#   "account": "0x5ac7983a4faafbee0150a8bf8100960887f1b102",
+#   "fromEns": null,
+#   "accountEns": null
+# },
+# {
+#   "network": "ethereum",
+#   "hash": "0x7120d4a910ab5f41b3d864c8ec426f9e1e7b51d693462325da8295b89b8677f8",
+#   "blockNumber": 14411513,
+#   "name": "Exchange",
+#   "direction": "exchange",
+#   "timeStamp": "1647621339",
+#   "symbol": "APE",
+#   "address": "0x4d224452801aced8b2f0aebe155379bb5d594381",
+#   "amount": "7200.0000",
+#   "from": "0x5ac7983a4faafbee0150a8bf8100960887f1b102",
+#   "destination": "0x68b3465833fb72a70ecdf485e0e4c7bd8665fc45",
+#   "contract": "0x68b3465833fb72a70ecdf485e0e4c7bd8665fc45",
+#   "subTransactions": [
+#       {
+#           "type": "outgoing",
+#           "symbol": "APE",
+#           "amount": 7200,
+#           "address": "0x4d224452801aced8b2f0aebe155379bb5d594381"
+#       },
+#       {
+#           "type": "incoming",
+#           "symbol": "ETH",
+#           "amount": 32.45720280351017,
+#           "address": "0x0000000000000000000000000000000000000000"
+#       }
+#   ],
+#   "nonce": "200",
+#   "gasPrice": 5.5561753191e-08,
+#   "gasLimit": 0.010083513654362252,
+#   "input": "0x5ae401dc",
+#   "gas": 0.007217916233536428,
+#   "txSuccessful": true,
+#   "account": "0x5ac7983a4faafbee0150a8bf8100960887f1b102",
+#   "fromEns": null,
+#   "accountEns": null
+# },
+
 module Zapper
   ##
   # Zapper API Client (https://zapper.fi)
