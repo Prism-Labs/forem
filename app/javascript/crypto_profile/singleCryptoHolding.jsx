@@ -39,8 +39,8 @@ SingleCryptoHolding.propTypes = {
   token: PropTypes.shape({
     tokenImageUrl: PropTypes.string,
     symbol: PropTypes.string,
-    balance: PropTypes.number,
-    price: PropTypes.number,
+    balance: PropTypes.string,
+    price: PropTypes.string,
     balanceUSD: PropTypes.string,
   })
 };

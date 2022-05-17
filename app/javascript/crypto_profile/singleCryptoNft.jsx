@@ -49,7 +49,7 @@ SingleCryptoNft.propTypes = {
       imgProfile: PropTypes.string,
       floorPrice: PropTypes.string,
     }),
-    balance: PropTypes.number,
+    balance: PropTypes.string,
     balanceUSD: PropTypes.string,
   })
 };

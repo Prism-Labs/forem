@@ -241,7 +241,7 @@ query search(
         if network.present?
           args[:network] = network
         end
-        call_api_get("/v1/transactions", **args)
+        call_api_get("/v2/transactions", **args)
       end
     end
 
@@ -249,52 +249,67 @@ query search(
     def get_balances(addresses)
       namespaced_key = "crypto_balances_#{addresses.join('_')}"
       Rails.cache.fetch(namespaced_key, expires_in: 900) do
-        all_events = call_api_get_eventstream_async("/v1/balances", addresses: addresses).wait
+        all_events = call_api_get_eventstream_async("/v2/balances", addresses: addresses).wait
         return if all_events.blank?
 
-        balances = []
+        totals = []
+        protocol = []
+        category = []
         all_events.each do |evt|
-          if evt.type.to_s == "balance"
-            balances.append(JSON.parse(evt.data))
+          if evt.type.to_s == "totals"
+            totals.append(JSON.parse(evt.data))
+          elsif evt.type.to_s == "protocol"
+            protocol.append(JSON.parse(evt.data))
+          elsif evt.type.to_s == "category"
+            category.append(JSON.parse(evt.data))
           else
             puts("I found '#{evt.type.to_s}'")
           end
         end
-        balances
+        return totals, protocol, category
       end
     end
 
     # Parse balance by type
     def get_balances_parsed(addresses)
-      balances = get_balances(addresses)
+      totals, protocol, category = get_balances(addresses)
 
-      nfts = {}
-      wallets = {}
-      addresses.each do |addr|
-        nfts[addr] = []
-        wallets[addr] = []
-      end
+      nfts = []
+      wallets = []
 
-      balances.each do |b|
-        # puts("#{b['balances'].length} balance items")
-        next if b["balances"].blank?
-
-        b["balances"].each do |addr, products|
-          # puts("#{products['products'].length} products found at #{addr}")
-          products["products"].each do |prod|
-            prod["assets"].each do |asset|
-              case asset["type"]
-              when "nft"
-                nfts[addr].append(asset)
-              when "wallet"
-                wallets[addr].append(asset)
-              end
-            end
-          end
+      category.each do |b|
+        b["wallet"].each do |addr, w|
+          wallets.append({
+            tokenImageUrl: w["displayProps"]["images"],
+            symbol: w["displayProps"]["label"],
+            price: w["context"]["price"],
+            balance: w["context"]["balance"],
+            balanceUSD: w["balanceUSD"],
+            network: w["network"],
+            address: w["address"],
+          })
+        end
+        b["nft"].each do |addr, n|
+          nfts.append({
+            collectionImg: n["displayProps"]["profileBanner"],
+            collectionName: n["displayProps"]["label"],
+            collection: {
+              imgProfile: n["displayProps"]["profileImage"],
+              floorPrice: n["context"]["floorPrice"]
+            },
+            assets: n["assets"],
+            balance: n["context"]["amountHeld"],
+            balanceUSD: n["balanceUSD"],
+            network: n["network"],
+            address: n["address"],
+          })
         end
       end
 
-      return balances, wallets, nfts
+      puts(wallets)
+      puts(nfts)
+
+      return wallets, nfts
     end
 
     # Get Gas Price API

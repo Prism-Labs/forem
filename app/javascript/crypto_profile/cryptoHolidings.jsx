@@ -26,6 +26,7 @@ export class CryptoHoldings extends Component {
       const response = await request(`/api/crypto_profile/${this.props.profileId}/balances`);
       if (response.ok) {
         const tokens = await response.json();
+        tokens.sort((a, b) => Number.parseFloat(b.balanceUSD.replace(/[^0-9\.]/g, '')) - Number.parseFloat(a.balanceUSD.replace(/[^0-9\.]/g, '')))
         this.setState({ tokens, isLoading: false });
       } else {
         throw new Error(response.statusText);
