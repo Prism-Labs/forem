@@ -306,9 +306,6 @@ query search(
         end
       end
 
-      puts(wallets)
-      puts(nfts)
-
       return wallets, nfts
     end
 
@@ -320,6 +317,35 @@ query search(
     # Get Token Prices API
     def get_prices_v3(network)
       call_api_get("/v1/prices-v3", network: network)
+    end
+
+    def get_zapper_avatar(address)
+      body = {
+        "query": "
+                query user($address: Address!) {
+                  user(input: { address: $address }) {
+                    address
+                    avatarURI
+                    level
+                    xp
+                    ens
+                    socialStats {
+                      followersCount
+                      followedCount
+                      followersRank
+                    }
+                  }
+                }
+            ",
+        "variables": {
+          "address": address
+        }
+      }
+      res = call_graphql(body)
+      return res["user"]["avatarURI"]
+    rescue
+      puts("Failed to fetch avatar from Zapper")
+      return nil
     end
   end
 end

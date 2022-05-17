@@ -83,6 +83,13 @@ class CryptoProfileController < ApplicationController
     @crypto_profile_title = @crypto_profile.name || params[:ens] || params[:ethereum_address] || params[:web3_username]
   end
 
+  def set_profile_avatar
+    if @crypto_profile.ethereum_address.present?
+      zapper_client = Zapper::ZapperClient.new
+      @crypto_profile.profile_image_url = zapper_client.get_zapper_avatar(@crypto_profile.ethereum_address)
+    end
+  end
+
   # Render Crypto profile page based on given @crypto_profile
   def handle_user_index
     not_found unless @crypto_profile
@@ -97,6 +104,7 @@ class CryptoProfileController < ApplicationController
 
     # Otherwise show the profile
     set_profile_title
+    set_profile_avatar
     set_profile_json_ld
 
     # set_crypto_account_balance
