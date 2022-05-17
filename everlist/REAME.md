@@ -21,6 +21,16 @@ nohup foreman start > log/foreman.log 2>&1 &
 - development code is in `everlist/dev` branch
 - create feature branch `everlist/feature/xxx` from `everlist/dev`
 
+## Configuration
+
+- `SERP_API_KEY=""`
+- `GHOSTWRITER_API_KEY=""`
+- `EMBEDLY_KEY="xxxxx"`
+- `EMBEDLY_VERBOSE=1`
+- `DUNE_USERNAME=""`
+- `DUNE_PASSWORD=""`
+- `ZAPPER_FI_API_KEY=""`
+
 ## Features
 
 - [x]  Create 'tiktok' tag to embed tiktok videos
