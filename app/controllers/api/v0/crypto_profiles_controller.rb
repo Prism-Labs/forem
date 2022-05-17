@@ -19,18 +19,16 @@ module Api
         eth_address = @crypto_profile.ethereum_address
         result = []
         zapper_client = Zapper::ZapperClient.new
-        _all_balances, @wallets, @balance_nfts = zapper_client.get_balances_parsed([eth_address])
-        @wallets = @wallets[eth_address]
+        @wallets, @balance_nfts = zapper_client.get_balances_parsed([eth_address])
+        @wallets = @wallets
         @wallets.each do |wallet|
-          wallet["tokens"].each do |token|
-            result.append({
-                            tokenImageUrl: token["tokenImageUrl"],
-                            symbol: token["symbol"],
-                            price: number_to_currency(token["price"].to_f),
-                            balance: number_with_precision(token["balance"], precision: 4, significant: true, strip_insignificant_zeros: true),
-                            balanceUSD: number_to_currency(token["balanceUSD"].to_f)
-                          })
-          end
+          result.append({
+                          tokenImageUrl: wallet[:tokenImageUrl][0],
+                          symbol: wallet[:symbol],
+                          price: number_to_currency(wallet[:price].to_f, precision: 4, significant: true, strip_insignificant_zeros: true),
+                          balance: number_with_precision(wallet[:balance], precision: 4, significant: true, strip_insignificant_zeros: true),
+                          balanceUSD: number_to_currency(wallet[:balanceUSD].to_f, precision: 4, significant: true, strip_insignificant_zeros: true)
+                        })
         end
         render json: result
       rescue StandardError => e
@@ -42,23 +40,19 @@ module Api
         eth_address = @crypto_profile.ethereum_address
         result = []
         zapper_client = Zapper::ZapperClient.new
-        _all_balances, @wallets, @balance_nfts = zapper_client.get_balances_parsed([eth_address])
-        @balance_nfts = @balance_nfts[eth_address]
+        @wallets, @balance_nfts = zapper_client.get_balances_parsed([eth_address])
+        @balance_nfts = @balance_nfts
         @balance_nfts.each do |asset|
-          asset["tokens"].each do |token|
-            next if !token["shouldDisplay"]
-
-            result.append({
-                            collectionImg: token["collectionImg"],
-                            collectionName: token["collectionName"],
-                            collection: {
-                              imgProfile: token["collection"]["imgProfile"],
-                              floorPrice: number_with_precision(token["collection"]["floorPrice"].to_f, precision: 5, significant: true, strip_insignificant_zeros: true)
-                            },
-                            balance: number_with_precision(token["balance"], precision: 0, significant: true, strip_insignificant_zeros: true),
-                            balanceUSD: number_to_currency(token["balanceUSD"].to_f)
-                          })
-          end
+          result.append({
+                          collectionImg: asset[:collectionImg],
+                          collectionName: asset[:collectionName],
+                          collection: {
+                            imgProfile: asset[:collection][:imgProfile],
+                            floorPrice: number_with_precision(asset[:collection][:floorPrice].to_f, precision: 5, significant: true, strip_insignificant_zeros: true)
+                          },
+                          balance: number_with_precision(asset[:balance], precision: 0, significant: true, strip_insignificant_zeros: true),
+                          balanceUSD: number_to_currency(asset[:balanceUSD].to_f)
+                        })
         end
         render json: result
       rescue StandardError => e

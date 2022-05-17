@@ -151,9 +151,9 @@ class CryptoProfileController < ApplicationController
       @balances = @balance_nfts == @transactions = []
     else
       begin
-        _all_balances, @wallets, @balance_nfts = zapper_client.get_balances_parsed([eth_address])
-        @wallets = @wallets[eth_address]
-        @balance_nfts = @balance_nfts[eth_address]
+        @wallets, @balance_nfts = zapper_client.get_balances_parsed([eth_address])
+        @wallets = @wallets
+        @balance_nfts = @balance_nfts
         @transactions ||= params[:state] == "transactions" ? zapper_client.get_transactions(eth_address, []) : []
       rescue StandardError => e
         print(e)

@@ -1,4 +1,5 @@
 import { h, Component } from 'preact';
+import PropTypes from 'prop-types';
 
 export class SingleCryptoTransaction extends Component {
   constructor(props) {
@@ -79,14 +80,14 @@ export class SingleCryptoTransaction extends Component {
 SingleCryptoTransaction.displayName = 'Single Crypto-Transaction';
 
 SingleCryptoTransaction.propTypes = {
-  tx: typeof {
-    txSuccessful: Boolean,
-    hash: String,
-    destination: String,
-    from: String,
-    direction: String,
-    timeStamp: Number,
-    amount: Number,
-    gas: Number,
-  }
+  tx: PropTypes.shape({
+    txSuccessful: PropTypes.bool,
+    hash: PropTypes.string,
+    destination: PropTypes.string,
+    from: PropTypes.string,
+    direction: PropTypes.string,
+    timeStamp: PropTypes.string,
+    amount: PropTypes.string,
+    gas: PropTypes.number,
+  })
 };

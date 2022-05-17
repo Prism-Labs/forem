@@ -69,9 +69,9 @@ class DuneQueryTag < CustomLiquidTagBase
 
     case @formatter
     when "currency"
-      number_to_currency(result[@row]["data"][@column])
+      number_to_currency(result[@row]["data"][@column], precision: 4, significant: true, strip_insignificant_zeros: true)
     when "to_currency"
-      number_to_currency(result[@row]["data"][@column])
+      number_to_currency(result[@row]["data"][@column], precision: 4, significant: true, strip_insignificant_zeros: true)
     when "percentage"
       number_to_percentage(result[@row]["data"][@column])
     when "to_percentage"

@@ -26,6 +26,7 @@ export class CryptoNfts extends Component {
       const response = await request(`/api/crypto_profile/${this.props.profileId}/nfts`);
       if (response.ok) {
         const nfts = await response.json();
+        nfts.sort((a, b) => Number.parseFloat(b.balanceUSD.replace(/[^0-9\.]/g, '')) - Number.parseFloat(a.balanceUSD.replace(/[^0-9\.]/g, '')))
         this.setState({ nfts, isLoading: false });
       } else {
         throw new Error(response.statusText);
