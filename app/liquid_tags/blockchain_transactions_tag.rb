@@ -61,9 +61,9 @@ class BlockchainTransactionsTag < CustomLiquidTagBase
 
     case @formatter
     when "currency"
-      number_to_currency(result[@row][@column])
+      number_to_currency(result[@row][@column], precision: 4, significant: true, strip_insignificant_zeros: true)
     when "to_currency"
-      number_to_currency(result[@row][@column])
+      number_to_currency(result[@row][@column], precision: 4, significant: true, strip_insignificant_zeros: true)
     when "percentage"
       number_to_percentage(result[@row][@column])
     when "to_percentage"

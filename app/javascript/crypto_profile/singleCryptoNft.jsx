@@ -1,4 +1,5 @@
 import { h, Component } from 'preact';
+import PropTypes from 'prop-types';
 
 export class SingleCryptoNft extends Component {
   constructor(props) {
@@ -41,14 +42,14 @@ export class SingleCryptoNft extends Component {
 SingleCryptoNft.displayName = 'Single NFT';
 
 SingleCryptoNft.propTypes = {
-  token: typeof {
-    collectionImg: String,
-    collectionName: String,
-    collection: {
-      imgProfile: String,
-      floorPrice: String,
-    },
-    balance: Number,
-    balanceUSD: String,
-  }
+  token: PropTypes.shape({
+    collectionImg: PropTypes.string,
+    collectionName: PropTypes.string,
+    collection: PropTypes.shape({
+      imgProfile: PropTypes.string,
+      floorPrice: PropTypes.string,
+    }),
+    balance: PropTypes.number,
+    balanceUSD: PropTypes.string,
+  })
 };

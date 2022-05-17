@@ -26,9 +26,9 @@ module Api
             result.append({
                             tokenImageUrl: token["tokenImageUrl"],
                             symbol: token["symbol"],
-                            price: number_to_currency(token["price"].to_f),
+                            price: number_to_currency(token["price"].to_f, precision: 4, significant: true, strip_insignificant_zeros: true),
                             balance: number_with_precision(token["balance"], precision: 4, significant: true, strip_insignificant_zeros: true),
-                            balanceUSD: number_to_currency(token["balanceUSD"].to_f)
+                            balanceUSD: number_to_currency(token["balanceUSD"].to_f, precision: 4, significant: true, strip_insignificant_zeros: true)
                           })
           end
         end

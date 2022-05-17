@@ -1,4 +1,5 @@
 import { h, Component } from 'preact';
+import PropTypes from 'prop-types';
 
 export class SingleCryptoHolding extends Component {
   constructor(props) {
@@ -35,11 +36,11 @@ export class SingleCryptoHolding extends Component {
 SingleCryptoHolding.displayName = 'Single Holding Item';
 
 SingleCryptoHolding.propTypes = {
-  token: typeof {
-    tokenImageUrl: String,
-    symbol: String,
-    balance: Number,
-    price: Number,
-    balanceUSD: String,
-  }
+  token: PropTypes.shape({
+    tokenImageUrl: PropTypes.string,
+    symbol: PropTypes.string,
+    balance: PropTypes.number,
+    price: PropTypes.number,
+    balanceUSD: PropTypes.string,
+  })
 };
