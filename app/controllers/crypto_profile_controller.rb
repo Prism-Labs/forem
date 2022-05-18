@@ -100,7 +100,7 @@ class CryptoProfileController < ApplicationController
       return redirect_to user_profile_path(@crypto_profile.user.username.downcase)
     end
 
-    params[:state] ||= "transactions"
+    params[:state] ||= "nfts"
 
     # Otherwise show the profile
     set_profile_title
