@@ -201,7 +201,7 @@ module Zapper
     # uses Zapper.fi 's GraphQL endpoint to search, find matching user, and get address from ens
     def resolve_ens(ens)
       
-      python_scripts_root = "#{__dir__}/../../everlist/python/";
+      python_scripts_root = "#{__dir__}/../../../everlist/python/";
       output = `cd #{python_scripts_root} && pyenv exec python resolve_ens.py #{ens}`
       res = JSON.parse(output)
 
