@@ -36,14 +36,14 @@ class DuneQueryTag < CustomLiquidTagBase
     if @query_param.present?
       dune_url = "#{dune_url}?#{@query_param}"
     end
-    puts "DUNE Query : #{dune_url}"
+    Rails.logger.debug { "DUNE Query : #{dune_url}" }
 
     script = "#{__dir__}/../../everlist/duneanalytics/client.py"
-    output = %x(python #{script} --username #{ENV["DUNE_USERNAME"]} --password #{ENV["DUNE_PASSWORD"]} #{dune_url})
+    output = `python #{script} --username #{ENV["DUNE_USERNAME"]} --password #{ENV["DUNE_PASSWORD"]} #{dune_url}`
     result = JSON.parse(output)
 
     if result.key?(:error)
-      print result
+      Rails.logger.debug result
       return
     end
 
@@ -69,9 +69,11 @@ class DuneQueryTag < CustomLiquidTagBase
 
     case @formatter
     when "currency"
-      number_to_currency(result[@row]["data"][@column], precision: 4, significant: true, strip_insignificant_zeros: true)
+      number_to_currency(result[@row]["data"][@column], precision: 4, significant: true,
+                                                        strip_insignificant_zeros: true)
     when "to_currency"
-      number_to_currency(result[@row]["data"][@column], precision: 4, significant: true, strip_insignificant_zeros: true)
+      number_to_currency(result[@row]["data"][@column], precision: 4, significant: true,
+                                                        strip_insignificant_zeros: true)
     when "percentage"
       number_to_percentage(result[@row]["data"][@column])
     when "to_percentage"

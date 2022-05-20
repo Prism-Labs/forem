@@ -180,8 +180,8 @@ group :test do
 end
 
 # Customization for Everlist and Ghostwriter
-gem "google_search_results", "~> 2.1"
-gem "embedly", "~> 1.9.0"
-gem "parse-cron", "~> 0.1.4" # Parses Crontab expression
-gem "ld-eventsource", "~> 2.2.0"
 gem "async", "~> 1.30.1"
+gem "embedly", "~> 1.9.0"
+gem "google_search_results", "~> 2.1"
+gem "ld-eventsource", "~> 2.2.0"
+gem "parse-cron", "~> 0.1.4" # Parses Crontab expression

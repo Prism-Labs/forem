@@ -7,7 +7,6 @@ require "uri"
 # Usage: {% screenshot "url" %}
 
 class ScreenshotTag < CustomLiquidTagBase
-
   DUNE_XYZ_URL_REGEXP = %r{\Ahttps?://dune\.xyz/embeds/.*\Z}
   LOOKSRARE_ORG_URL_REGEXP = %r{\Ahttps?://looksrare\.org/.*\Z}
 
@@ -38,7 +37,7 @@ class ScreenshotTag < CustomLiquidTagBase
   end
 
   def generate_screenshot
-    puts "Generating screenshot of #{@url}"
+    Rails.logger.debug { "Generating screenshot of #{@url}" }
     thumbnail_urls = []
 
     begin
@@ -81,7 +80,7 @@ class ScreenshotTag < CustomLiquidTagBase
 
     %(<a href="#{@url}"><img src="#{@screenshot}" /></a>)
   rescue StandardError => e
-    print e
+    Rails.logger.debug e
   end
 end
 

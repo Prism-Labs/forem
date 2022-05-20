@@ -70,7 +70,6 @@ class Autopost < ApplicationRecord
 
   after_save :bust_cache
 
-
   # [@jgaskins] We use an index on `published`, but since it's a boolean value
   #   the Postgres query planner often skips it due to lack of diversity of the
   #   data in the column. However, since `published_at` is a *very* diverse
@@ -386,10 +385,11 @@ class Autopost < ApplicationRecord
   def before_destroy_actions
     bust_cache(destroying: true)
     autopost_ids = user.autopost_ids.dup
-    if organization
-      organization.touch(:last_autopost_at)
-      autopost_ids.concat organization.autopost_ids
-    end
+
+    (return unless organization)
+
+    organization.touch(:last_autopost_at)
+    autopost_ids.concat organization.autopost_ids
   end
 
   def evaluate_front_matter(front_matter)

@@ -28,11 +28,11 @@ module Autoposts
       if success
         user.rate_limiter.track_limit_by_action(:autopost_update)
 
-        if autopost.published && autopost.saved_change_to_published_at.present?
-          
-        elsif autopost.published
+        # if autopost.published && autopost.saved_change_to_published_at.present?
 
-        end
+        # elsif autopost.published
+
+        # end
 
         # Remove any associated notifications if Autopost is unpublished
         if autopost.saved_changes["published"] == [true, false]

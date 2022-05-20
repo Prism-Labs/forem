@@ -35,14 +35,14 @@ module Ghostwriter
         keywords: keywords,
         site: site,
         serp_google_tbs_qdr: serp_google_tbs_qdr,
-        output_format: 'markdown',
+        output_format: "markdown"
       }.to_json
       resp = self.class.post("/article-generator/write_by_keywords", body: req_body, headers: headers)
 
       raise Error, "GhostWriter API returned invalid status! #{resp.code}" unless resp.code == 200
 
       body = resp.to_h
-      return true, body["generated_article"]
+      [true, body["generated_article"]]
     end
   end
 end

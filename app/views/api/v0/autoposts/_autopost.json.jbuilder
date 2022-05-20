@@ -13,7 +13,6 @@ json.extract!(
   :published_timestamp,
 )
 
-
 json.cover_image     cloud_cover_url(autopost.main_image)
 json.social_image    autopost_social_image_url(autopost)
 json.canonical_url   autopost.processed_canonical_url

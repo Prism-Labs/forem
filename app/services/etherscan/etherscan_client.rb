@@ -31,14 +31,14 @@ module Etherscan
       end
 
       api_url = "#{@base_uri}#{api_path}?api_key=#{@api_key}&#{params.to_query}"
-      puts "Calling Etherscan.IO API - #{api_url}"
+      Rails.logger.debug { "Calling Etherscan.IO API - #{api_url}" }
 
       response = HTTParty.get(api_url, format: :plain)
 
       result = JSON.parse response
 
       if result.key?("statusCode") && result["statusCode"] != 200
-        puts result["message"]
+        Rails.logger.debug result["message"]
         return
       end
 
@@ -50,7 +50,7 @@ module Etherscan
         return if @api_key.blank?
 
         api_url = "#{@base_uri}#{api_path}?api_key=#{@api_key}&#{params.to_query}"
-        puts "Calling Etherscan.IO API (Expecting an Event-Stream) - #{api_url}"
+        Rails.logger.debug { "Calling Etherscan.IO API (Expecting an Event-Stream) - #{api_url}" }
 
         all_events = []
         es_started = false
@@ -68,13 +68,13 @@ module Etherscan
             elsif es_started && !es_ended
               all_events.append(event)
             end
-            puts("Etherscan.IO response event stream: #{event.type}")
+            Rails.logger.debug { "Etherscan.IO response event stream: #{event.type}" }
           end
         end
 
         task.sleep(20) until sse_client.closed?
 
-        puts("Etherscan.IO response event stream: Closed, #{all_events.length} valid events so far")
+        Rails.logger.debug { "Etherscan.IO response event stream: Closed, #{all_events.length} valid events so far" }
         all_events
       end
     end
@@ -101,7 +101,7 @@ module Etherscan
         if evt.type.to_s == "balance"
           balances.append(JSON.parse(evt.data))
         else
-          puts("I found '#{evt.type.to_s}'")
+          Rails.logger.debug { "I found '#{evt.type}'" }
         end
       end
 
@@ -122,11 +122,11 @@ module Etherscan
         end
 
         balances.each do |b|
-          puts("#{b['balances'].length} balance items")
+          Rails.logger.debug { "#{b['balances'].length} balance items" }
           next if b["balances"].blank?
 
           b["balances"].each do |addr, products|
-            puts("#{products['products'].length} products found at #{addr}")
+            Rails.logger.debug { "#{products['products'].length} products found at #{addr}" }
             products["products"].each do |prod|
               prod["assets"].each do |asset|
                 case asset["type"]

@@ -11,7 +11,7 @@ export class SingleCryptoNft extends Component {
     return (
       <div class="token-container">
         <div class="token-img-container">
-          <img class="token-img" src={this.state.collectionImg} alt={this.state.collectionName} />
+          <img class="token-img" src={this.state.collectionImg || this.state.collection.imgProfile} alt={this.state.collectionName} />
           <div class="token-origin">
             <img class="token-origin-profile" src={this.state.collection.imgProfile} alt="" />
           </div>

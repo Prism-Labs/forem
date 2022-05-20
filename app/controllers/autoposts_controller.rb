@@ -12,13 +12,13 @@ class AutopostsController < ApplicationController
 
     @autoposts = Autopost.all.order(published_at: :desc).page(params[:page].to_i).per(12)
     @autoposts = if params[:username]
-                  handle_user_or_organization_feed
-                elsif params[:tag]
-                  handle_tag_feed
-                else
-                  @autoposts
-                    .includes(:user)
-                end
+                   handle_user_or_organization_feed
+                 elsif params[:tag]
+                   handle_tag_feed
+                 else
+                   @autoposts
+                     .includes(:user)
+                 end
 
     not_found unless @autoposts&.any?
 
@@ -207,10 +207,10 @@ class AutopostsController < ApplicationController
   def set_autopost
     owner = User.find_by(username: params[:username]) || Organization.find_by(slug: params[:username])
     found_autopost = if params[:slug] && owner
-                      owner.autoposts.find_by(slug: params[:slug])
-                    else
-                      Autopost.includes(:user).find(params[:id])
-                    end
+                       owner.autoposts.find_by(slug: params[:slug])
+                     else
+                       Autopost.includes(:user).find(params[:id])
+                     end
     @autopost = found_autopost || not_found
     Honeycomb.add_field("autopost_id", @autopost.id)
   end

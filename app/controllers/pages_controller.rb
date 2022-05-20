@@ -133,10 +133,8 @@ class PagesController < ApplicationController
     unless q.empty?
       search = GoogleSearch.new(q: q, serp_api_key: ApplicationConfig["SERP_API_KEY"])
       hash_results = search.get_hash
-      unless hash_results[:related_searches].nil?
-        hash_results[:related_searches].each do |related_search|
-          @autosuggests.append(related_search[:query])
-        end
+      hash_results[:related_searches]&.each do |related_search|
+        @autosuggests.append(related_search[:query])
       end
     end
 
@@ -163,9 +161,9 @@ class PagesController < ApplicationController
       # See prefill patern: Articles::Builder
       c = :ghostwriter_article_counter
       session[c] = 0 unless session[c]
-      session[c] = (1 + session[c].to_i) % 5 + 1 # let's allow max 5 articles to be cached
-      k = ("ghostwriter_article_" + session[c].to_s).to_sym
-      session[k] = "title:" + title + LINE_BREAK + "---" + text
+      session[c] = ((1 + session[c].to_i) % 5) + 1 # let's allow max 5 articles to be cached
+      k = "ghostwriter_article_#{session[c]}".to_sym
+      session[k] = "title:#{title}#{LINE_BREAK}---#{text}"
       redirect_to controller: "articles", action: "new", gw_generated: session[c]
     else
       redirect_to action: "search_new", q: q, error: text.to_s

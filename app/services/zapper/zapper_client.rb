@@ -130,14 +130,14 @@ module Zapper
       return if @zapper_fi_api_key.blank?
 
       api_url = "#{@base_uri}#{api_path}?api_key=#{@zapper_fi_api_key}&#{params.to_query}"
-      puts "Calling ZAPPER FI API - #{api_url}"
+      Rails.logger.info("Calling ZAPPER FI API - #{api_url}")
 
       response = HTTParty.get(api_url, format: :plain)
 
       result = JSON.parse response
 
       if result.key?("statusCode") && result["statusCode"] != 200
-        puts result["message"]
+        Rails.logger.info(result["message"])
         return
       end
 
@@ -149,7 +149,7 @@ module Zapper
         return if @zapper_fi_api_key.blank?
 
         api_url = "#{@base_uri}#{api_path}?api_key=#{@zapper_fi_api_key}&#{params.to_query}"
-        puts "Calling ZAPPER FI API (Expecting an Event-Stream) - #{api_url}"
+        Rails.logger.info("Calling ZAPPER FI API (Expecting an Event-Stream) - #{api_url}")
 
         all_events = []
         es_started = false
@@ -167,13 +167,13 @@ module Zapper
             elsif es_started && !es_ended
               all_events.append(event)
             end
-            puts("Zapper response event stream: #{event.type}")
+            Rails.logger.info("Zapper response event stream: #{event.type}")
           end
         end
 
         task.sleep(20) until sse_client.closed?
 
-        puts("Zapper response event stream: Closed, #{all_events.length} valid events so far")
+        Rails.logger.info("Zapper response event stream: Closed, #{all_events.length} valid events so far")
         all_events
       end
     end
@@ -181,19 +181,23 @@ module Zapper
     def call_graphql(body)
       return if @zapper_fi_api_key.blank?
 
-      puts "Calling Zapper GraphQL"
-      puts body.to_json
+      Rails.logger.info("Calling Zapper GraphQL")
+      Rails.logger.info(body.to_json)
 
       api_url = "#{@base_uri}/graphql?api_key=#{@zapper_fi_api_key}"
-      response = HTTParty.post(api_url, body: body.to_json, headers: { "Content-Type" => "application/json" }, format: :plain)
+      response = HTTParty.post(api_url,
+                               body: body.to_json,
+                               headers: { "Content-Type" => "application/json" },
+                               format: :plain)
 
-      puts "Got response from Zapper GraphQL"
-      puts response
+      Rails.logger.info("Got response from Zapper GraphQL")
+      Rails.logger.info(response)
       result = JSON.parse response
 
       result["data"]
     end
 
+    # uses Zapper.fi 's GraphQL endpoint to search, find matching user, and get address from ens
     def resolve_ens(ens)
       body = {
         query: "
@@ -256,60 +260,58 @@ query search(
         protocol = []
         category = []
         all_events.each do |evt|
-          if evt.type.to_s == "totals"
+          case evt.type.to_s
+          when "totals"
             totals.append(JSON.parse(evt.data))
-          elsif evt.type.to_s == "protocol"
+          when "protocol"
             protocol.append(JSON.parse(evt.data))
-          elsif evt.type.to_s == "category"
+          when "category"
             category.append(JSON.parse(evt.data))
           else
-            puts("I found '#{evt.type.to_s}'")
+            Rails.logger.info("I found '#{evt.type}'")
           end
         end
-        return totals, protocol, category
+        [totals, protocol, category]
       end
     end
 
     # Parse balance by type
     def get_balances_parsed(addresses)
-      totals, protocol, category = get_balances(addresses)
+      _totals, _protocol, category = get_balances(addresses)
 
       nfts = []
       wallets = []
 
       category.each do |b|
-        b["wallet"].each do |addr, w|
+        b["wallet"].each do |_addr, w|
           wallets.append({
-            tokenImageUrl: w["displayProps"]["images"],
-            symbol: w["displayProps"]["label"],
-            price: w["context"]["price"],
-            balance: w["context"]["balance"],
-            balanceUSD: w["balanceUSD"],
-            network: w["network"],
-            address: w["address"],
-          })
+                           tokenImageUrl: w["displayProps"]["images"],
+                           symbol: w["displayProps"]["label"],
+                           price: w["context"]["price"],
+                           balance: w["context"]["balance"],
+                           balanceUSD: w["balanceUSD"],
+                           network: w["network"],
+                           address: w["address"]
+                         })
         end
-        b["nft"].each do |addr, n|
+        b["nft"].each do |_addr, n|
           nfts.append({
-            collectionImg: n["displayProps"]["profileBanner"],
-            collectionName: n["displayProps"]["label"],
-            collection: {
-              imgProfile: n["displayProps"]["profileImage"],
-              floorPrice: n["context"]["floorPrice"]
-            },
-            assets: n["assets"],
-            balance: n["context"]["amountHeld"],
-            balanceUSD: n["balanceUSD"],
-            network: n["network"],
-            address: n["address"],
-          })
+                        collectionImg: n["displayProps"]["profileBanner"],
+                        collectionName: n["displayProps"]["label"],
+                        collection: {
+                          imgProfile: n["displayProps"]["profileImage"],
+                          floorPrice: n["context"]["floorPrice"]
+                        },
+                        assets: n["assets"],
+                        balance: n["context"]["amountHeld"],
+                        balanceUSD: n["balanceUSD"],
+                        network: n["network"],
+                        address: n["address"]
+                      })
         end
       end
 
-      puts(wallets)
-      puts(nfts)
-
-      return wallets, nfts
+      [wallets, nfts]
     end
 
     # Get Gas Price API
@@ -320,6 +322,34 @@ query search(
     # Get Token Prices API
     def get_prices_v3(network)
       call_api_get("/v1/prices-v3", network: network)
+    end
+
+    def get_zapper_avatar(address)
+      body = {
+        query: "
+                query user($address: Address!) {
+                  user(input: { address: $address }) {
+                    address
+                    avatarURI
+                    level
+                    xp
+                    ens
+                    socialStats {
+                      followersCount
+                      followedCount
+                      followersRank
+                    }
+                  }
+                }
+            ",
+        variables: {
+          address: address
+        }
+      }
+      res = call_graphql(body)
+      res["user"]["avatarURI"]
+    rescue StandardError
+      Rails.logger.info("Failed to fetch avatar from Zapper")
     end
   end
 end

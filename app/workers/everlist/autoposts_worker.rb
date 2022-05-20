@@ -29,7 +29,7 @@ module Everlist
       article.published = true
 
       if article.main_image.nil?
-        img_url_regexp = %r{<img .*src=\"([^\"]+)\"}
+        img_url_regexp = /<img .*src="([^"]+)"/
         img_match = img_url_regexp.match(article.processed_html)
         unless img_match.nil?
           article.main_image = img_match[1]
@@ -84,18 +84,22 @@ module Everlist
         cron_parser = CronParser.new(autopost.article_create_crontab)
         prev_create = autopost.last_article_created_at.nil? ? autopost.published_at : autopost.last_article_created_at
         next_create = cron_parser.next(prev_create.localtime)
-        print "prev_create=#{prev_create.localtime}, next_create=#{next_create}, now=#{Time.now}\n"
-        if next_create <= Time.now
-          print "Creating a new article #{autopost.last_article_id} from autopost #{autopost.id}"
+        Rails.logger.debug do
+          "prev_create=#{prev_create.localtime}, next_create=#{next_create}, now=#{Time.zone.now}\n"
+        end
+        if next_create <= Time.zone.now
+          Rails.logger.debug { "Creating a new article #{autopost.last_article_id} from autopost #{autopost.id}" }
           create_article_from_autopost(autopost)
         elsif autopost.enable_update && !autopost.last_article_id.nil?
           # article had been created already, check update article timer
           cron_parser = CronParser.new(autopost.article_update_crontab)
           prev_update = autopost.last_article_updated_at.nil? ? autopost.last_article_created_at : autopost.last_article_updated_at
           next_update = cron_parser.next(prev_update.localtime)
-          print "prev_update=#{prev_update.localtime}, next_create=#{next_update}, now=#{Time.now}\n"
-          if next_update <= Time.now
-            print "Updating article #{autopost.last_article_id} for autopost #{autopost.id}"
+          Rails.logger.debug do
+            "prev_update=#{prev_update.localtime}, next_create=#{next_update}, now=#{Time.zone.now}\n"
+          end
+          if next_update <= Time.zone.now
+            Rails.logger.debug { "Updating article #{autopost.last_article_id} for autopost #{autopost.id}" }
             update_last_article_for_autopost(autopost)
           end
         end
