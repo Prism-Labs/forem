@@ -118,6 +118,7 @@ module Zapper
 
     def initialize(api_key: nil)
       @base_uri = "https://api.zapper.fi"
+      @web_base_uri = "https://web.zapper.fi"
       @zapper_fi_api_key = api_key.presence || ENV.fetch("ZAPPER_FI_API_KEY", "96e0cc51-a62e-42ca-acee-910ea7d2a241")
 
       return unless @zapper_fi_api_key.strip.empty?
@@ -178,13 +179,13 @@ module Zapper
       end
     end
 
-    def call_graphql(body)
+    def call_graphql(body, base_uri: @base_uri)
       return if @zapper_fi_api_key.blank?
 
       Rails.logger.info("Calling Zapper GraphQL")
       Rails.logger.info(body.to_json)
 
-      api_url = "#{@base_uri}/graphql?api_key=#{@zapper_fi_api_key}"
+      api_url = "#{base_uri}/graphql?api_key=#{@zapper_fi_api_key}"
       response = HTTParty.post(api_url,
                                body: body.to_json,
                                headers: { "Content-Type" => "application/json" },
@@ -199,41 +200,16 @@ module Zapper
 
     # uses Zapper.fi 's GraphQL endpoint to search, find matching user, and get address from ens
     def resolve_ens(ens)
-      body = {
-        query: "
-query search(
-  $categories: [SearchResultCategory!]
-  $networks: [Network!]
-  $search: String!
-  $maxResultsPerCategory: Float
-) {
-  search(
-    input: {
-      categories: $categories
-      networks: $networks
-      search: $search
-      maxResultsPerCategory: $maxResultsPerCategory
-    }
-  ) {
-    results {
-      __typename
-      ... on UserResult {
-        ens
-        address
-        imageUrl
-      }
-    }
-  }
-}",
-        variables: {
-          categories: ["USER"],
-          search: ens
-        }
-      }
-      res = call_graphql(body)
+      
+      python_scripts_root = "#{__dir__}/../../everlist/python/";
+      output = `cd #{python_scripts_root} && pyenv exec python resolve_ens.py #{ens}`
+      res = JSON.parse(output)
+
+      address = res["address"].present? ? res["address"] : nil
+
       {
-        ens: res["search"]["results"][0]["ens"],
-        address: res["search"]["results"][0]["address"]
+        ens: ens,
+        address: address
       }
     end
 

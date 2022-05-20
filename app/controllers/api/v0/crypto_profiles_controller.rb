@@ -7,6 +7,9 @@ module Api
         set_profile
         eth_address = @crypto_profile.ethereum_address
         result = []
+
+        return render json: result if eth_address.blank?
+
         zapper_client = Zapper::ZapperClient.new
         @transactions = zapper_client.get_transactions(eth_address, [])
         render json: @transactions
@@ -18,6 +21,9 @@ module Api
         set_profile
         eth_address = @crypto_profile.ethereum_address
         result = []
+
+        return render json: result if eth_address.blank?
+
         zapper_client = Zapper::ZapperClient.new
         @wallets, @balance_nfts = zapper_client.get_balances_parsed([eth_address])
         @wallets.each do |wallet|
@@ -41,6 +47,9 @@ module Api
         set_profile
         eth_address = @crypto_profile.ethereum_address
         result = []
+
+        return render json: result if eth_address.blank?
+
         zapper_client = Zapper::ZapperClient.new
         @wallets, @balance_nfts = zapper_client.get_balances_parsed([eth_address])
         @balance_nfts.each do |asset|
