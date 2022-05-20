@@ -39,7 +39,7 @@ class DuneQueryTag < CustomLiquidTagBase
     Rails.logger.debug { "DUNE Query : #{dune_url}" }
 
     python_scripts_root = "#{__dir__}/../../everlist/python/";
-    output = `cd #{python_scripts_root} && pyenv exec python duneanalytics.py --username #{ENV["DUNE_USERNAME"]} --password #{ENV["DUNE_PASSWORD"]} #{dune_url}`
+    output = `cd #{python_scripts_root} && pyenv exec python dune_client.py --username #{ENV["DUNE_USERNAME"]} --password #{ENV["DUNE_PASSWORD"]} #{dune_url}`
     result = JSON.parse(output)
 
     if result.key?(:error)
