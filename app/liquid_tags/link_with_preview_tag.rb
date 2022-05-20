@@ -7,7 +7,6 @@ require "uri"
 # Usage: {% linkwithpreview "url" %}
 
 class LinkWithPreviewTag < ScreenshotTag
-
   PARTIAL = "liquids/link_with_preview".freeze
 
   def initialize(_tag_name, url, _parse_context)
@@ -24,20 +23,20 @@ class LinkWithPreviewTag < ScreenshotTag
     @url = parse_value_with_context(@url_arg, context).strip
     url = URI.extract(@url, /http(s)?/)
     @url = url[0] unless url.empty?
-    puts "final url: #{@url}"
+    Rails.logger.debug { "final url: #{@url}" }
 
     if DUNE_XYZ_URL_REGEXP.match @url
       @oembed = {
         type: "link",
         url: @url,
-        html: "<div style=\"position:relative;height: 320px;\"><iframe src=\"#{@url}\" style=\"position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; border-radius: 1px; pointer-events: auto; background-color: rgb(247, 246, 245);\"></iframe></div>",
+        html: "<div style=\"position:relative;height: 320px;\"><iframe src=\"#{@url}\" style=\"position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; border-radius: 1px; pointer-events: auto; background-color: rgb(247, 246, 245);\"></iframe></div>"
       }
     else
       @oembed = parse_url
 
       if needs_static_screenshot?
         generate_screenshot
-        puts "Generated screenshot #{@screenshot}"
+        Rails.logger.debug { "Generated screenshot #{@screenshot}" }
         @oembed[:thumbnail_url] = @screenshot
       end
     end
@@ -47,7 +46,7 @@ class LinkWithPreviewTag < ScreenshotTag
       locals: @oembed,
     )
   rescue StandardError => e
-    print e
+    Rails.logger.debug e
   end
 
   private

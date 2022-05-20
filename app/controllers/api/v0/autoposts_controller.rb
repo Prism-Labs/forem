@@ -89,15 +89,15 @@ module Api
         num = [per_page, 1000].min
 
         @autoposts = case params[:status]
-                    when "published"
-                      @user.autoposts.published
-                    when "unpublished"
-                      @user.autoposts.unpublished
-                    when "all"
-                      @user.autoposts
-                    else
-                      @user.autoposts.published
-                    end
+                     when "published"
+                       @user.autoposts.published
+                     when "unpublished"
+                       @user.autoposts.unpublished
+                     when "all"
+                       @user.autoposts
+                     else
+                       @user.autoposts.published
+                     end
 
         @autoposts = @autoposts
           .includes(:organization)
@@ -122,7 +122,7 @@ module Api
       def allowed_to_change_org_id?
         potential_user = @autopost&.user || @user
         if @autopost.nil? || OrganizationMembership.exists?(user: potential_user,
-                                                           organization_id: params.dig("autopost", "organization_id"))
+                                                            organization_id: params.dig("autopost", "organization_id"))
           OrganizationMembership.exists?(user: potential_user,
                                          organization_id: params.dig("autopost", "organization_id"))
         elsif potential_user == @user

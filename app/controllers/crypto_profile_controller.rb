@@ -49,13 +49,17 @@ class CryptoProfileController < ApplicationController
   end
 
   def twitter_index
-    @crypto_profile = CryptoProfile.find_by(twitter_username: params[:twitter_username].tr("@", "")) if params[:twitter_username].present?
+    if params[:twitter_username].present?
+      @crypto_profile = CryptoProfile.find_by(twitter_username: params[:twitter_username].tr("@", ""))
+    end
 
     handle_user_index
   end
 
   def github_index
-    @crypto_profile = CryptoProfile.find_by(github_username: params[:github_username].tr("@", "")) if params[:github_username].present?
+    if params[:github_username].present?
+      @crypto_profile = CryptoProfile.find_by(github_username: params[:github_username].tr("@", ""))
+    end
 
     handle_user_index
   end
@@ -71,11 +75,12 @@ class CryptoProfileController < ApplicationController
 
     begin
       @crypto_profile = CryptoProfile.new(ethereum_address: params[:ethereum_address],
-                                          ens: params[:ens], web3_username: params[:web3_username])
+                                          ens: params[:ens],
+                                          web3_username: params[:web3_username])
       @crypto_profile.save
-      puts "Created a new crypto profile from user visited page"
+      Rails.logger.debug "Created a new crypto profile from user visited page"
     rescue StandardError => e
-      print(e)
+      Rails.logger.debug(e)
     end
   end
 
@@ -84,10 +89,10 @@ class CryptoProfileController < ApplicationController
   end
 
   def set_profile_avatar
-    if @crypto_profile.ethereum_address.present?
-      zapper_client = Zapper::ZapperClient.new
-      @crypto_profile.profile_image_url = zapper_client.get_zapper_avatar(@crypto_profile.ethereum_address)
-    end
+    return if @crypto_profile.ethereum_address.blank?
+
+    zapper_client = Zapper::ZapperClient.new
+    @crypto_profile.profile_image_url = zapper_client.get_zapper_avatar(@crypto_profile.ethereum_address)
   end
 
   # Render Crypto profile page based on given @crypto_profile
@@ -150,7 +155,7 @@ class CryptoProfileController < ApplicationController
         @crypto_profile.ethereum_address = resolved[:address]
         @crypto_profile.save
       rescue StandardError => e
-        print(e)
+        Rails.logger.debug(e)
       end
     end
 
@@ -160,11 +165,9 @@ class CryptoProfileController < ApplicationController
     else
       begin
         @wallets, @balance_nfts = zapper_client.get_balances_parsed([eth_address])
-        @wallets = @wallets
-        @balance_nfts = @balance_nfts
         @transactions ||= params[:state] == "transactions" ? zapper_client.get_transactions(eth_address, []) : []
       rescue StandardError => e
-        print(e)
+        Rails.logger.debug(e)
       end
     end
   end
@@ -177,7 +180,7 @@ class CryptoProfileController < ApplicationController
       "@type": "Person",
       mainEntityOfPage: {
         "@type": "WebPage",
-        "@id": URL.crypto_profile(@crypto_profile),
+        "@id": URL.crypto_profile(@crypto_profile)
       },
       url: URL.crypto_profile(@crypto_profile),
       sameAs: profile_same_as,

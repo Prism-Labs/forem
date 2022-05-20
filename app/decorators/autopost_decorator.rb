@@ -39,7 +39,7 @@ class AutopostDecorator < ApplicationDecorator
     published_at.to_i
   end
 
-  def title_with_query_preamble(user_signed_in)
+  def title_with_query_preamble(_user_signed_in)
     title
   end
 
@@ -66,5 +66,4 @@ class AutopostDecorator < ApplicationDecorator
   def long_markdown?
     body_markdown.present? && body_markdown.size > LONG_MARKDOWN_THRESHOLD
   end
-
 end

@@ -1,6 +1,6 @@
 Embedly.configure do |config|
   # prints debug messages to the logger
-  config.debug = !!ENV["EMBEDLY_VERBOSE"]
+  config.debug = !ENV["EMBEDLY_VERBOSE"].nil?
 
   # use a custom logger
   # config.logger = MyAwesomeLogger.new(STDERR)

@@ -140,13 +140,16 @@ module Users
         existing_profile = @user.crypto_profiles.first
         existing_profile.update(ethereum_address: ethereum_address) if ethereum_address.present?
         existing_profile.update(ens: ens) if ens.present?
-        puts "\n\n\n\n\n\n Updated existing profile \n\n\n\n\n\n\n\n"
+        Rails.logger.debug "\n\n\n\n\n\n Updated existing profile \n\n\n\n\n\n\n\n"
       else
         # look for crypto profile that has the given address
-        new_profile = CryptoProfile.new(user: @user, ethereum_address: ethereum_address, ens: ens,
-                          github_username: @user.github_username, twitter_username: @user.twitter_username)
+        new_profile = CryptoProfile.new(user: @user,
+                                        ethereum_address: ethereum_address,
+                                        ens: ens,
+                                        github_username: @user.github_username,
+                                        twitter_username: @user.twitter_username)
         new_profile.save
-        puts "\n\n\n\n\n\n New profile \n\n\n\n\n\n\n\n"
+        Rails.logger.debug "\n\n\n\n\n\n New profile \n\n\n\n\n\n\n\n"
       end
     end
   end

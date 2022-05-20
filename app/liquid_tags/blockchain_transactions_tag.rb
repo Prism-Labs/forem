@@ -7,7 +7,6 @@
 # Example: {% blockchain_transactions network="ethereum", address="0x94c7c5f905fc888ddc48c51a90b68ddec44f8d8c", column="amount" %}
 #
 class BlockchainTransactionsTag < CustomLiquidTagBase
-
   def initialize(_tag_name, params, _parse_context)
     super
     args = __split_params(params)
@@ -40,7 +39,7 @@ class BlockchainTransactionsTag < CustomLiquidTagBase
 
   def render_zapper_fi_result(context)
     if @network.blank? || @address.blank?
-      puts "Missing network and address parameters"
+      Rails.logger.debug "Missing network and address parameters"
       return
     end
 
@@ -86,7 +85,7 @@ class BlockchainTransactionsTag < CustomLiquidTagBase
 
     render_zapper_fi_result(context)
   rescue StandardError => e
-    print e
+    Rails.logger.debug e
   end
 end
 

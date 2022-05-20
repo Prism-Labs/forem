@@ -205,8 +205,8 @@ class StoriesController < ApplicationController
 
     # Let's the the Crypto account details for the user if he has one
     # if the user has the ethereum address set
-    # 
-    # TODO: Enable custom profile_field named "Ethereum Address" 
+    #
+    # TODO: Enable custom profile_field named "Ethereum Address"
     #    1. `/admin/feature_flags/features`, add and enable feature named "profile_admin"
     #    2. `/admin/customization/profile_fields`, add profile_field_group and a new profile_field,
     #        named "Ethereum Address" and this field would be accessible by `user.profile.ethereum_address`
@@ -241,7 +241,8 @@ class StoriesController < ApplicationController
     return if performed?
 
     # modify links to open in a new tab
-    @article.processed_html = @article.processed_html.gsub(/<a([^>]*)(?:target="\w+")?([^>]*)>/, "<a\\1\\2 target=\"_blank\">")
+    @article.processed_html = @article.processed_html.gsub(/<a([^>]*)(?:target="\w+")?([^>]*)>/,
+                                                           "<a\\1\\2 target=\"_blank\">")
 
     if params[:view] == "modal"
       render template: "articles/show_on_modal", layout: false

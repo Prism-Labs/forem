@@ -13,7 +13,7 @@ module Everlist
       end.new
     end
 
-    def _get_recent_gas_prices()
+    def _get_recent_gas_prices
       # Gas Cost for Typical Actions at Recent Gas Prices
       #
       # return format (gas price is in Gwei, all "costs" are in USD):
@@ -30,7 +30,7 @@ module Everlist
       #
       dune_url = "https://dune.xyz/queries/294162"
       script = "#{__dir__}/../../../everlist/duneanalytics/client.py"
-      output = %x(python #{script} --username #{ENV["DUNE_USERNAME"]} --password #{ENV["DUNE_PASSWORD"]} #{dune_url})
+      output = `python #{script} --username #{ENV["DUNE_USERNAME"]} --password #{ENV["DUNE_PASSWORD"]} #{dune_url}`
       result = JSON.parse(output)
 
       if result.key?(:error)
@@ -59,7 +59,8 @@ module Everlist
       prices = _get_recent_gas_prices
       if !prices.nil? && prices["median_gas_price_yesterday"].positive?
         gas_price_change = (prices["median_gas_price_today"] - prices["median_gas_price_yesterday"]) / prices["median_gas_price_yesterday"] * 100.0
-        gas_price_change_text = "Gas prices changed [[#{helper.number_to_percentage(gas_price_change, precision: 1)}]] since yesterday."
+        gas_price_change_text = "Gas prices changed [[#{helper.number_to_percentage(gas_price_change,
+                                                                                    precision: 1)}]] since yesterday."
       else
         gas_price_change_text = ""
       end
@@ -99,13 +100,13 @@ Compound Deposit: #{helper.number_to_currency(prices['cost_of_compound_erc20_dep
         main_image = screenshot
       end
 
-      article_params = {
-        tags: ["gas", "ethereum"],
+      {
+        tags: %w[gas ethereum],
         description: "",
         series: "Gas prices",
         body_markdown: "#{gas_price_change_text}\n#{preview_url_text}\n\n#{gas_prices_text}\n\n#{preview_url_text2}",
         published: true,
-        main_image: main_image,
+        main_image: main_image
       }
     end
 
