@@ -29,8 +29,8 @@ module Everlist
       # }
       #
       dune_url = "https://dune.xyz/queries/294162"
-      script = "#{__dir__}/../../../everlist/duneanalytics/client.py"
-      output = `python #{script} --username #{ENV["DUNE_USERNAME"]} --password #{ENV["DUNE_PASSWORD"]} #{dune_url}`
+      python_scripts_root = "#{__dir__}/../../everlist/python/";
+      output = `cd #{python_scripts_root} && pyenv exec python duneanalytics.py --username #{ENV["DUNE_USERNAME"]} --password #{ENV["DUNE_PASSWORD"]} #{dune_url}`
       result = JSON.parse(output)
 
       if result.key?(:error)

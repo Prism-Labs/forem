@@ -1,7 +1,8 @@
-# Dune Analytics Client Script
+# Python Utility Scripts
 ======================================================
 
-Dune Analytics client script that is using unofficial python client library [github.com/itzmestar/duneanalytics](https://github.com/itzmestar/duneanalytics).
+
+
 
 ## Installation
 
@@ -21,3 +22,10 @@ Dune Analytics client script that is using unofficial python client library [git
 
     pip install -r requirements.txt
   ```
+
+## 1. duneanalytics_client.py
+  Dune Analytics client script that is using unofficial python client library [github.com/itzmestar/duneanalytics](https://github.com/itzmestar/duneanalytics).
+
+## 2. resolve_ens.py
+  Resolves ENS to Ethereum Address using [Web3](https://web3py.readthedocs.io/)
+  For now it is hard-coded to use Alchemy as a provider.
