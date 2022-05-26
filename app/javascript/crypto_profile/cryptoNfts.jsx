@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { SingleCryptoNft } from './singleCryptoNft';
 import { request } from '@utilities/http';
 import { Spinner } from '@crayons/Spinner/Spinner';
+import { BalanceStore } from './balanceStore';
 
 export class CryptoNfts extends Component {
   constructor(props) {
@@ -14,7 +15,16 @@ export class CryptoNfts extends Component {
     };
 
     if (!props.nfts)
-      this.loadBalance()
+    {
+      if (props.balanceStore )
+      {
+        props.balanceStore.getNfts((nfts, complete) => {
+          this.setState({ nfts, isLoading: !complete });
+        });
+      }
+      else
+        this.loadBalance()
+    }
   }
 
   async loadBalance() {
@@ -37,10 +47,11 @@ export class CryptoNfts extends Component {
   }
 
   render() {
-    return this.state.isLoading ? (<p><Spinner /> Loading... </p>) : (
+    return (
       <div class="nft-grid">
         {this.state.nfts.map((token, i) => (<SingleCryptoNft key={i} token={token} />))}
-        {!this.state.nfts && (<p>No tokens</p>)}
+        {!this.state.isLoading && !this.state.nfts && (<p>No tokens</p>)}
+        {this.state.isLoading && (<p><Spinner /> Loading... </p>)}
       </div>
     )
   }
@@ -51,4 +62,5 @@ CryptoNfts.displayName = 'NFT Holdings';
 CryptoNfts.propTypes = {
   profileId: PropTypes.number.isRequired,
   nfts: PropTypes.array,
+  balanceStore: PropTypes.instanceOf(BalanceStore),
 };
