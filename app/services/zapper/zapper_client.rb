@@ -115,6 +115,7 @@ module Zapper
   #
   class ZapperClient
     include HTTParty
+    include ActionView::Helpers::NumberHelper
 
     def initialize(api_key: nil)
       @base_uri = "https://api.zapper.fi"
@@ -145,7 +146,7 @@ module Zapper
       result["data"]
     end
 
-    def call_api_get_eventstream_async(api_path, **params)
+    def call_api_get_eventstream_async(api_path, event_callback_fn: nil, **params)
       Async do |task|
         return if @zapper_fi_api_key.blank?
 
@@ -168,11 +169,16 @@ module Zapper
             elsif es_started && !es_ended
               all_events.append(event)
             end
+
+            if event_callback_fn.present?
+              event_callback_fn.call(event)
+            end
+
             Rails.logger.info("Zapper response event stream: #{event.type}")
           end
         end
 
-        task.sleep(20) until sse_client.closed?
+        task.sleep(2) until sse_client.closed?
 
         Rails.logger.info("Zapper response event stream: Closed, #{all_events.length} valid events so far")
         all_events
@@ -225,10 +231,14 @@ module Zapper
     end
 
     # Get Balances API
-    def get_balances(addresses)
+    # @param string[] addresses - REQUIRED
+    # @param ActionController::Live::SSE sse -
+    # @param Method event_callback_fn
+    def get_balances(addresses, event_callback_fn=nil)
       namespaced_key = "crypto_balances_#{addresses.join('_')}"
-      Rails.cache.fetch(namespaced_key, expires_in: 900) do
-        all_events = call_api_get_eventstream_async("/v2/balances", addresses: addresses).wait
+      hit_cache = true
+      totals1, protocol1, category1 = Rails.cache.fetch(namespaced_key, expires_in: 900) do
+        all_events = call_api_get_eventstream_async("/v2/balances", addresses: addresses, event_callback_fn: event_callback_fn).wait
         return if all_events.blank?
 
         totals = []
@@ -246,44 +256,97 @@ module Zapper
             Rails.logger.info("I found '#{evt.type}'")
           end
         end
+        hit_cache = false
         [totals, protocol, category]
       end
+
+      [totals1, protocol1, category1, hit_cache]
+    end
+
+    def _parse_balance_category_event(category)
+      nfts = []
+      wallets = []
+
+      category["wallet"].each do |_addr, w|
+        wallets.append({
+                      tokenImageUrl: w["displayProps"]["images"][0],
+                      symbol: w["displayProps"]["label"],
+                      price: number_to_currency(w["context"]["price"].to_f, precision: 4,
+                                                                            significant: true,
+                                                                            strip_insignificant_zeros: true),
+                      balance: number_with_precision(w["context"]["balance"], precision: 4,
+                                                                            significant: true,
+                                                                            strip_insignificant_zeros: true),
+                      balanceUSD: number_to_currency(w["balanceUSD"].to_f, precision: 4,
+                                                                          significant: true,
+                                                                          strip_insignificant_zeros: true),
+                      network: w["network"],
+                      address: w["address"],
+                    })
+      end
+      category["nft"].each do |_addr, n|
+        nfts.append({
+                    collectionImg: n["displayProps"]["profileBanner"],
+                    collectionName: n["displayProps"]["label"],
+                    collection: {
+                      imgProfile: n["displayProps"]["profileImage"],
+                      floorPrice: number_with_precision(n["context"]["floorPrice"].to_f, precision: 5,
+                                                                                        significant: true,
+                                                                                        strip_insignificant_zeros: true)
+                    },
+                    balance: number_with_precision(n["context"]["amountHeld"], precision: 0,
+                                                                              significant: true,
+                                                                              strip_insignificant_zeros: true),
+                    balanceUSD: number_to_currency(n["balanceUSD"].to_f),
+                    assets: n["assets"],
+                    network: n["network"],
+                    address: n["address"]
+                  })
+      end
+
+      [wallets, nfts]
     end
 
     # Parse balance by type
     def get_balances_parsed(addresses)
       _totals, _protocol, category = get_balances(addresses)
 
-      nfts = []
       wallets = []
+      nfts = []
 
       category.each do |b|
-        b["wallet"].each do |_addr, w|
-          wallets.append({
-                           tokenImageUrl: w["displayProps"]["images"],
-                           symbol: w["displayProps"]["label"],
-                           price: w["context"]["price"],
-                           balance: w["context"]["balance"],
-                           balanceUSD: w["balanceUSD"],
-                           network: w["network"],
-                           address: w["address"]
-                         })
+        _wallets, _nfts = _parse_balance_category_event(b)
+        wallets.concat(_wallets)
+        nfts.concat(_nfts)
+      end
+
+      [wallets, nfts]
+    end
+
+    def get_balances_parsed_stream(addresses, sse)
+      _totals, _protocol, category, hit_cache = get_balances(addresses,
+        lambda{|event|
+          if event.type.to_s == "category"
+            category = JSON.parse(event.data)
+            wallets, nfts = _parse_balance_category_event(category)
+
+            sse.write(wallets, id: 11, event: "wallet")
+            sse.write(nfts, id: 11, event: "nft")
+            puts("\n\n\nwriting to SSE\n\n\n")
+          end
+        })
+
+      if hit_cache
+        wallets = []
+        nfts = []
+        category.each do |b|
+          _wallets, _nfts = _parse_balance_category_event(b)
+          wallets.concat(_wallets)
+          nfts.concat(_nfts)
         end
-        b["nft"].each do |_addr, n|
-          nfts.append({
-                        collectionImg: n["displayProps"]["profileBanner"],
-                        collectionName: n["displayProps"]["label"],
-                        collection: {
-                          imgProfile: n["displayProps"]["profileImage"],
-                          floorPrice: n["context"]["floorPrice"]
-                        },
-                        assets: n["assets"],
-                        balance: n["context"]["amountHeld"],
-                        balanceUSD: n["balanceUSD"],
-                        network: n["network"],
-                        address: n["address"]
-                      })
-        end
+        sse.write(wallets, id: 10, event: "wallet")
+        sse.write(nfts, id: 10, event: "nft")
+        puts("\n\n\nHit cache! writing to SSE\n\n\n")
       end
 
       [wallets, nfts]
@@ -300,29 +363,32 @@ module Zapper
     end
 
     def get_zapper_avatar(address)
-      body = {
-        query: "
-                query user($address: Address!) {
-                  user(input: { address: $address }) {
-                    address
-                    avatarURI
-                    level
-                    xp
-                    ens
-                    socialStats {
-                      followersCount
-                      followedCount
-                      followersRank
+      namespaced_key = "crypto_zapper_avatar_#{address}"
+      Rails.cache.fetch(namespaced_key, expires_in: 3600) do
+        body = {
+          query: "
+                  query user($address: Address!) {
+                    user(input: { address: $address }) {
+                      address
+                      avatarURI
+                      level
+                      xp
+                      ens
+                      socialStats {
+                        followersCount
+                        followedCount
+                        followersRank
+                      }
                     }
                   }
-                }
-            ",
-        variables: {
-          address: address
+              ",
+          variables: {
+            address: address
+          }
         }
-      }
-      res = call_graphql(body)
-      res["user"]["avatarURI"]
+        res = call_graphql(body)
+        res["user"]["avatarURI"]
+      end
     rescue StandardError
       Rails.logger.info("Failed to fetch avatar from Zapper")
     end
