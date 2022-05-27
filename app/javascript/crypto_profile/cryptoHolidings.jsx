@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { SingleCryptoHolding } from './singleCryptoHolding';
 import { request } from '@utilities/http';
 import { Spinner } from '@crayons/Spinner/Spinner';
+import { debounceAction } from '../utilities/debounceAction';
 import { BalanceStore } from './balanceStore';
 
 export class CryptoHoldings extends Component {
@@ -19,13 +20,16 @@ export class CryptoHoldings extends Component {
     {
       if (props.balanceStore)
       {
-        props.balanceStore.getTokens((tokens, complete) => {
-          this.setState({ tokens, isLoading: !complete });
-        });
+        const debouncedSetTokens = debounceAction(this.setTokens.bind(this));
+        props.balanceStore.getTokens(debouncedSetTokens);
       }
       else
         this.loadBalance()
     }
+  }
+
+  setTokens(tokens, complete) {
+    this.setState({ tokens, isLoading: !complete })
   }
 
   async loadBalance() {
@@ -51,8 +55,8 @@ export class CryptoHoldings extends Component {
   render() {
     return (
       <div class="crypto-holding-list">
-        {this.state.tokens.map((token, i) => (<SingleCryptoHolding key={i} token={token} />))}
-        {!this.state.isLoading && !this.state.tokens && (<p>No tokens</p>)}
+        {this.state.tokens.map((token, i) => (<SingleCryptoHolding key={`${i}_${token.id}`} token={token} />))}
+        {!this.state.isLoading && (!this.state.tokens || this.state.tokens.length === 0) && (<p>No tokens</p>)}
         {this.state.isLoading && (<p><Spinner /> Loading... </p>)}
       </div>
     )

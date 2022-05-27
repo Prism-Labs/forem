@@ -19,12 +19,11 @@ export class BalanceStore {
     const source = new EventSource(`/api/crypto_profile/${this.profileId}/all_balances`);
     source.addEventListener('message', (event) => {});
     source.addEventListener('wallet', (event) => {
-      const ex = this.tokens || [];
       const d = JSON.parse(event.data) || [];
       if (d.length > 0) {
-        const tokens = ex.concat(d)
-        tokens.sort((a, b) => Number.parseFloat(b.balanceUSD.replace(/[^0-9\.]/g, '')) - Number.parseFloat(a.balanceUSD.replace(/[^0-9\.]/g, '')))
-        this.tokens = tokens;
+        this.tokens = (this.tokens || []).concat(d)
+        this.tokens.sort((a, b) => Number.parseFloat(b.balanceUSD.replace(/[^0-9\.]/g, '')) - Number.parseFloat(a.balanceUSD.replace(/[^0-9\.]/g, '')))
+        const tokens = this.tokens.map(t => ({...t}));
 
         this.tokenListeners.forEach(lf => {
           lf && typeof lf === 'function' && lf(tokens, false)
@@ -32,12 +31,11 @@ export class BalanceStore {
       }
     });
     source.addEventListener('nft', (event) => {
-      const ex = this.nfts || [];
       const d = JSON.parse(event.data) || [];
       if (d.length > 0) {
-        const nfts = ex.concat(d)
-        nfts.sort((a, b) => Number.parseFloat(b.balanceUSD.replace(/[^0-9\.]/g, '')) - Number.parseFloat(a.balanceUSD.replace(/[^0-9\.]/g, '')))
-        this.nfts = nfts;
+        this.nfts = (this.nfts || []).concat(d)
+        this.nfts.sort((a, b) => Number.parseFloat(b.balanceUSD.replace(/[^0-9\.]/g, '')) - Number.parseFloat(a.balanceUSD.replace(/[^0-9\.]/g, '')))
+        const nfts = this.nfts.map(t => ({...t}));
 
         this.nftListeners.forEach(lf => {
           lf && typeof lf === 'function' && lf(nfts, false)
@@ -47,12 +45,14 @@ export class BalanceStore {
     source.onerror = (event) => {
       this.isLoading = false;
       this.isLoaded = true;
+      const tokens = this.tokens.map(t => ({...t}));
+      const nfts = this.nfts.map(t => ({...t}));
 
       this.tokenListeners.forEach(lf => {
-        lf && typeof lf === 'function' && lf(this.tokens, true)
+        lf && typeof lf === 'function' && lf(tokens, true)
       })
       this.nftListeners.forEach(lf => {
-        lf && typeof lf === 'function' && lf(this.nfts, true)
+        lf && typeof lf === 'function' && lf(nfts, true)
       })
 
       source.close();
