@@ -267,8 +267,9 @@ module Zapper
       nfts = []
       wallets = []
 
-      category["wallet"].each do |_addr, w|
+      category["wallet"].each do |addr, w|
         wallets.append({
+                      id: addr,
                       tokenImageUrl: w["displayProps"]["images"][0],
                       symbol: w["displayProps"]["label"],
                       price: number_to_currency(w["context"]["price"].to_f, precision: 4,
@@ -284,8 +285,9 @@ module Zapper
                       address: w["address"],
                     })
       end
-      category["nft"].each do |_addr, n|
+      category["nft"].each do |addr, n|
         nfts.append({
+                    id: addr,
                     collectionImg: n["displayProps"]["profileBanner"],
                     collectionName: n["displayProps"]["label"],
                     collection: {

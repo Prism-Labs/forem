@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { SingleCryptoNft } from './singleCryptoNft';
 import { request } from '@utilities/http';
 import { Spinner } from '@crayons/Spinner/Spinner';
+import { debounceAction } from '../utilities/debounceAction';
 import { BalanceStore } from './balanceStore';
 
 export class CryptoNfts extends Component {
@@ -18,13 +19,16 @@ export class CryptoNfts extends Component {
     {
       if (props.balanceStore )
       {
-        props.balanceStore.getNfts((nfts, complete) => {
-          this.setState({ nfts, isLoading: !complete });
-        });
+        const debouncedSetNfts = debounceAction(this.setNfts.bind(this));
+        props.balanceStore.getNfts(debouncedSetNfts);
       }
       else
         this.loadBalance()
     }
+  }
+
+  setNfts(nfts, complete) {
+    this.setState({ nfts, isLoading: !complete })
   }
 
   async loadBalance() {
@@ -49,8 +53,8 @@ export class CryptoNfts extends Component {
   render() {
     return (
       <div class="nft-grid">
-        {this.state.nfts.map((token, i) => (<SingleCryptoNft key={i} token={token} />))}
-        {!this.state.isLoading && !this.state.nfts && (<p>No tokens</p>)}
+        {this.state.nfts.map((token, i) => (<SingleCryptoNft key={`${i}_${token.id}`} token={token} />))}
+        {!this.state.isLoading && (!this.state.nfts || this.state.nfts.length === 0) && (<p>No tokens</p>)}
         {this.state.isLoading && (<p><Spinner /> Loading... </p>)}
       </div>
     )
