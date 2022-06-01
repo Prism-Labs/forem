@@ -32,22 +32,25 @@ class DuneQueryTag < CustomLiquidTagBase
   end
 
   def get_dune_query_result
-    dune_url = "https://dune.xyz/queries/#{@query_id}"
-    if @query_param.present?
-      dune_url = "#{dune_url}?#{@query_param}"
-    end
-    Rails.logger.debug { "DUNE Query : #{dune_url}" }
+    namespaced_key = "dune_query_#{@query_id}"
 
-    python_scripts_root = "#{__dir__}/../../everlist/python/";
-    output = `cd #{python_scripts_root} && pyenv exec python dune_client.py --username #{ENV["DUNE_USERNAME"]} --password #{ENV["DUNE_PASSWORD"]} #{dune_url}`
-    result = JSON.parse(output)
+    # Let's cache dune query result for 10 min
+    Rails.cache.fetch(namespaced_key, expires_in: 600) do
+      dune_url = "https://dune.xyz/queries/#{@query_id}"
+      if @query_param.present?
+        dune_url = "#{dune_url}?#{@query_param}"
+      end
+      Rails.logger.debug { "DUNE Query : #{dune_url}" }
 
-    if result.key?(:error)
+      python_scripts_root = "#{__dir__}/../../everlist/python/";
+      output = `cd #{python_scripts_root} && pyenv exec python dune_client.py --username #{ENV["DUNE_USERNAME"]} --password #{ENV["DUNE_PASSWORD"]} #{dune_url}`
+      result = JSON.parse(output)
+
       Rails.logger.debug result
-      return
-    end
+      return if result.key?("error")
 
-    result["data"]["get_result_by_result_id"]
+      result["data"]["get_result_by_result_id"]
+    end
   end
 
   def render(context)
