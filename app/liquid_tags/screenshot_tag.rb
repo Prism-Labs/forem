@@ -7,8 +7,10 @@ require "uri"
 # Usage: {% screenshot "url" %}
 
 class ScreenshotTag < CustomLiquidTagBase
-  DUNE_XYZ_URL_REGEXP = %r{\Ahttps?://dune\.xyz/embeds/.*\Z}
-  LOOKSRARE_ORG_URL_REGEXP = %r{\Ahttps?://looksrare\.org/.*\Z}
+  DUNE_XYZ_URL_REGEXP = /^https?:\/\/dune\.xyz\/embeds\//i
+  LOOKSRARE_ORG_URL_REGEXP = /^https?:\/\/looksrare\.org\//i
+  LOOKSRARE_ORG_COLLECTION_URL_REGEXP = /^https?:\/\/looksrare\.org\/collections\/(0x[0-9A-F]+)$/i
+  LOOKSRARE_ORG_COLLECTION_ITEM_URL_REGEXP = /^https?:\/\/looksrare\.org\/collections\/(0x[0-9A-F]+)$\/([0-9A-F]+)$/i
 
   def initialize(_tag_name, url, _parse_context)
     super
@@ -33,18 +35,34 @@ class ScreenshotTag < CustomLiquidTagBase
   def exclude_from_embedly?
     # - Dune XYZ 's own screenshot API seems to be dead now
     # - Looksrare.org returns invalid Thumbnail URL in OEmbed data
-    DUNE_XYZ_URL_REGEXP.match(@url) || LOOKSRARE_ORG_URL_REGEXP.match(@url)
+    return true if DUNE_XYZ_URL_REGEXP.match(@url) || LOOKSRARE_ORG_URL_REGEXP.match(@url)
+
+    false
+  end
+
+  def known_invalid_screenshot_url?
+    # Checks if the URL is a known invalid url
+    if LOOKSRARE_ORG_URL_REGEXP.match(@url)
+      return true unless LOOKSRARE_ORG_COLLECTION_URL_REGEXP.match(@url) || LOOKSRARE_ORG_COLLECTION_ITEM_URL_REGEXP.match(@url)
+    end
+
+    false
   end
 
   def generate_screenshot
+    Rails.logger.debug { "#{@url} #{exclude_from_embedly?} #{known_invalid_screenshot_url?}" }
+
+    if known_invalid_screenshot_url?
+      Rails.logger.debug { "Known invalid url for screenshots, skipping: #{@url}" }
+      return
+    end
+
     Rails.logger.debug { "Generating screenshot of #{@url}" }
     thumbnail_urls = []
 
     begin
       unless exclude_from_embedly?
-        embedly_api = Embedly::API.new
-        obj = embedly_api.oembed url: @url
-        oembed = obj[0].marshal_dump
+        oembed = get_oembed_embely(@url)
         thumbnail_urls.append(oembed[:thumbnail_url])
       end
     rescue StandardError
@@ -61,13 +79,22 @@ class ScreenshotTag < CustomLiquidTagBase
     # So we want to download it and upload it to our own server and fixate it.
     begin
       thumbnail_counter += 1
-      @screenshot = download_and_save_image(thumbnail_urls[thumbnail_counter - 1])
+      @screenshot = download_and_save_image(thumbnail_urls.last)
     rescue StandardError
       retry if thumbnail_counter < thumbnail_urls.length
       # Failed to download image?
       @screenshot = nil
     end
     @screenshot
+  end
+
+  def get_oembed_embely(url)
+    namespaced_key = "oembed_embedly_#{url}"
+    Rails.cache.fetch(namespaced_key, expires_in: 3600) do
+      embedly_api = Embedly::API.new
+      obj = embedly_api.oembed url: url
+      obj[0].marshal_dump
+    end
   end
 
   def render(context)

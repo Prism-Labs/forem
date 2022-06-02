@@ -54,7 +54,7 @@ def main(args):
         # fetch token
         dune.fetch_auth_token()
         # fetch query result id using query id
-        result_id = dune.query_result_id(query_id=query_id, parameters=parameters)
+        result_id = dune.query_result_id_v2(query_id=query_id, parameters=parameters)
         # fetch query result
         data = dune.query_result(result_id)
         print(json.dumps(data, indent=4))

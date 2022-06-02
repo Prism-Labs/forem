@@ -16,29 +16,34 @@ class LinkWithPreviewTag < ScreenshotTag
 
   def needs_static_screenshot?
     # - Looksrare.org returns invalid Thumbnail URL in OEmbed data
-    LOOKSRARE_ORG_URL_REGEXP.match(@url)
+    return true if LOOKSRARE_ORG_URL_REGEXP.match(@url)
+
+    false
   end
 
   def render(context)
     @url = parse_value_with_context(@url_arg, context).strip
     url = URI.extract(@url, /http(s)?/)
-    @url = url[0] unless url.empty?
+    @url = url.last unless url.empty?
     Rails.logger.debug { "final url: #{@url}" }
 
-    if DUNE_XYZ_URL_REGEXP.match @url
+    if exclude_from_embedly?
       @oembed = {
+        title: nil,
+        description: nil,
         type: "link",
         url: @url,
         html: "<div style=\"position:relative;height: 320px;\"><iframe src=\"#{@url}\" style=\"position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; border-radius: 1px; pointer-events: auto; background-color: rgb(247, 246, 245);\"></iframe></div>"
       }
     else
-      @oembed = parse_url
+      @oembed = get_oembed_embely(@url)
+    end
 
-      if needs_static_screenshot?
-        generate_screenshot
-        Rails.logger.debug { "Generated screenshot #{@screenshot}" }
-        @oembed[:thumbnail_url] = @screenshot
-      end
+    if needs_static_screenshot?
+      generate_screenshot
+      Rails.logger.debug { "Generated screenshot #{@screenshot}" }
+      @oembed[:thumbnail_url] = @screenshot
+      @oembed.delete(:html)
     end
 
     ApplicationController.render(
@@ -46,18 +51,7 @@ class LinkWithPreviewTag < ScreenshotTag
       locals: @oembed,
     )
   rescue StandardError => e
-    Rails.logger.debug e
-  end
-
-  private
-
-  def parse_url
-    validate_url
-
-    embedly_api = Embedly::API.new
-
-    obj = embedly_api.oembed url: @url
-    obj[0].marshal_dump
+    Rails.logger.error("#{e}\n#{e.backtrace}")
   end
 end
 

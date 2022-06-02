@@ -206,7 +206,7 @@ module Zapper
 
     # uses Zapper.fi 's GraphQL endpoint to search, find matching user, and get address from ens
     def resolve_ens(ens)
-      python_scripts_root = "#{__dir__}/../../../everlist/python/";
+      python_scripts_root = "#{__dir__}/../../../everlist/python/"
       output = `cd #{python_scripts_root} && pyenv exec python resolve_ens.py #{ens}`
       res = JSON.parse(output)
 
@@ -234,7 +234,7 @@ module Zapper
     # @param string[] addresses - REQUIRED
     # @param ActionController::Live::SSE sse -
     # @param Method event_callback_fn
-    def get_balances(addresses, event_callback_fn=nil)
+    def get_balances(addresses, event_callback_fn = nil)
       namespaced_key = "crypto_balances_#{addresses.join('_')}"
       hit_cache = true
       totals1, protocol1, category1 = Rails.cache.fetch(namespaced_key, expires_in: 900) do
@@ -269,40 +269,40 @@ module Zapper
 
       category["wallet"].each do |addr, w|
         wallets.append({
-                      id: addr,
-                      tokenImageUrl: w["displayProps"]["images"][0],
-                      symbol: w["displayProps"]["label"],
-                      price: number_to_currency(w["context"]["price"].to_f, precision: 4,
+                        id: addr,
+                        tokenImageUrl: w["displayProps"]["images"][0],
+                        symbol: w["displayProps"]["label"],
+                        price: number_to_currency(w["context"]["price"].to_f, precision: 4,
+                                                                              significant: true,
+                                                                              strip_insignificant_zeros: true),
+                        balance: number_with_precision(w["context"]["balance"], precision: 4,
+                                                                              significant: true,
+                                                                              strip_insignificant_zeros: true),
+                        balanceUSD: number_to_currency(w["balanceUSD"].to_f, precision: 4,
                                                                             significant: true,
                                                                             strip_insignificant_zeros: true),
-                      balance: number_with_precision(w["context"]["balance"], precision: 4,
-                                                                            significant: true,
-                                                                            strip_insignificant_zeros: true),
-                      balanceUSD: number_to_currency(w["balanceUSD"].to_f, precision: 4,
-                                                                          significant: true,
-                                                                          strip_insignificant_zeros: true),
-                      network: w["network"],
-                      address: w["address"],
-                    })
+                        network: w["network"],
+                        address: w["address"],
+                      })
       end
       category["nft"].each do |addr, n|
         nfts.append({
-                    id: addr,
-                    collectionImg: n["displayProps"]["profileBanner"],
-                    collectionName: n["displayProps"]["label"],
-                    collection: {
-                      imgProfile: n["displayProps"]["profileImage"],
-                      floorPrice: number_with_precision(n["context"]["floorPrice"].to_f, precision: 5,
-                                                                                        significant: true,
-                                                                                        strip_insignificant_zeros: true)
-                    },
-                    balance: number_with_precision(n["context"]["amountHeld"], precision: 0,
-                                                                              significant: true,
-                                                                              strip_insignificant_zeros: true),
-                    balanceUSD: number_to_currency(n["balanceUSD"].to_f),
-                    assets: n["assets"],
-                    network: n["network"],
-                    address: n["address"]
+                      id: addr,
+                      collectionImg: n["displayProps"]["profileBanner"],
+                      collectionName: n["displayProps"]["label"],
+                      collection: {
+                        imgProfile: n["displayProps"]["profileImage"],
+                        floorPrice: number_with_precision(n["context"]["floorPrice"].to_f, precision: 5,
+                                                                                          significant: true,
+                                                                                          strip_insignificant_zeros: true)
+                      },
+                      balance: number_with_precision(n["context"]["amountHeld"], precision: 0,
+                                                                                significant: true,
+                                                                                strip_insignificant_zeros: true),
+                      balanceUSD: number_to_currency(n["balanceUSD"].to_f),
+                      assets: n["assets"],
+                      network: n["network"],
+                      address: n["address"]
                   })
       end
 
@@ -317,9 +317,9 @@ module Zapper
       nfts = []
 
       category.each do |b|
-        _wallets, _nfts = _parse_balance_category_event(b)
-        wallets.concat(_wallets)
-        nfts.concat(_nfts)
+        wallets1, nfts1 = _parse_balance_category_event(b)
+        wallets.concat(wallets1)
+        nfts.concat(nfts1)
       end
 
       [wallets, nfts]
@@ -334,7 +334,6 @@ module Zapper
 
             sse.write(wallets, id: 11, event: "wallet")
             sse.write(nfts, id: 11, event: "nft")
-            puts("\n\n\nwriting to SSE\n\n\n")
           end
         })
 
@@ -342,13 +341,12 @@ module Zapper
         wallets = []
         nfts = []
         category.each do |b|
-          _wallets, _nfts = _parse_balance_category_event(b)
-          wallets.concat(_wallets)
-          nfts.concat(_nfts)
+          wallets1, nfts1 = _parse_balance_category_event(b)
+          wallets.concat(wallets1)
+          nfts.concat(nfts1)
         end
         sse.write(wallets, id: 10, event: "wallet")
         sse.write(nfts, id: 10, event: "nft")
-        puts("\n\n\nHit cache! writing to SSE\n\n\n")
       end
 
       [wallets, nfts]
