@@ -75,15 +75,15 @@ class ScreenshotTag < CustomLiquidTagBase
     thumbnail_urls.append("https://image.thum.io/get/auth/#{thum_io_key_id}-#{thum_io_key_value}/#{@url}")
 
     thumbnail_counter = 0
+    @screenshot = nil
     # This thumbnail is provided by Dune.xyz and changes over time,
     # So we want to download it and upload it to our own server and fixate it.
-    begin
-      thumbnail_counter += 1
-      @screenshot = download_and_save_image(thumbnail_urls.last)
-    rescue StandardError
-      retry if thumbnail_counter < thumbnail_urls.length
-      # Failed to download image?
-      @screenshot = nil
+    while @screenshot == nil && !thumbnail_urls.empty? do
+      begin
+        @screenshot = download_and_save_image(thumbnail_urls.shift)
+      rescue StandardError
+        # ignore error and move an
+      end
     end
     @screenshot
   end
@@ -99,7 +99,8 @@ class ScreenshotTag < CustomLiquidTagBase
 
   def render(context)
     @url = parse_value_with_context(@url_arg, context).strip
-    @url = URI.extract(@url, /http(s)?/)
+    url = URI.extract(@url, /http(s)?/)
+    @url = url.last unless url.empty?
 
     generate_screenshot
 
